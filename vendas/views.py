@@ -1,18 +1,19 @@
-from django.shortcuts import render, redirect
-from .forms import VendaForm
-from .models import Produto, Loja
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login
 
-@login_required
-def registrar_venda(request):
+def index(request):
+    # Se o usuário já estiver autenticado, redireciona para a página de vendas ou página inicial.
+    if request.user.is_authenticated:
+        return redirect('registrar_venda.html')  # Ajuste para o nome da sua página de vendas
+
     if request.method == 'POST':
-        form = VendaForm(request.POST)
+        form = AuthenticationForm(data=request.POST)
         if form.is_valid():
-            venda = form.save(commit=False)
-            venda.vendedor = request.user.vendedor
-            venda.save()
-            return redirect('venda_registrada')
+            user = form.get_user()
+            login(request, user)  # Realiza o login do usuário
+            return redirect('registrar_venda.html')  # Redireciona para a página de vendas após o login bem-sucedido
     else:
-        form = VendaForm()
-    
-    return render(request, 'registrar_venda.html', {'form': form})
+        form = AuthenticationForm()
+
+    return render(request, 'index.html', {'form': form})
