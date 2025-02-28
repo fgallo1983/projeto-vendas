@@ -1,6 +1,7 @@
-from django.urls import path
 from . import views
+from django.urls import path
+
 
 urlpatterns = [
-    path('registrar-venda/', views.registrar_venda, name='registrar_venda'),
+    path('pagina_vendas/', views.pagina_vendas, name='pagina_vendas'),  # Página de vendas
 ]

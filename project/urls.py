@@ -22,4 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),  # URL do painel administrativo
     path('accounts/', include('django.contrib.auth.urls')),  # URLs de login e logout padrão do Django
     path('', views.index, name='index'),  # Página inicial com o formulário de login
+    path('', include('vendas.urls')),  # Inclui as URLs do app "vendas"
+
 ]
