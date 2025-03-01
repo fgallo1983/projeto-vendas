@@ -1,7 +1,33 @@
-<h2>Registrar Venda</h2>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Venda</title>
+</head>
+<body>
+    <h2>Registrar Venda</h2>
 
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Registrar Venda</button>
-</form>
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <p>
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+            </p>
+            {% if field.errors %}
+                <ul>
+                    {% for error in field.errors %}
+                        <li style="color: red;">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+
+        <button type="submit">Salvar Venda</button>
+    </form>
+
+    <a href="{% url 'pagina_vendas' %}">Voltar</a>
+</body>
+</html>
