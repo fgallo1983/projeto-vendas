@@ -5,6 +5,7 @@ from .models import Venda
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
 from .models import ArquivoVendedor
+from django.db.models import Sum
 
 
 def index(request):
@@ -43,6 +44,17 @@ def registrar_venda(request):
         form = VendaForm()
     
     return render(request, 'registrar_venda.html', {'form': form})
+
+def relatorio_vendas(request):
+    # Realizando a agregação para os dados de vendas
+    vendas_por_vendedor = Venda.objects.values('vendedor__username', 'mes_venda', 'ano_venda').annotate(total_vendido=Sum('quantidade_vendida'))
+    vendas_por_loja = Venda.objects.values('loja__nome', 'mes_venda', 'ano_venda').annotate(total_vendido=Sum('quantidade_vendida'))
+
+    # Renderizando a página do relatório
+    return render(request, 'relatorio_vendas.html', {
+        'vendas_por_vendedor': vendas_por_vendedor,
+        'vendas_por_loja': vendas_por_loja,
+    })
 
 
 

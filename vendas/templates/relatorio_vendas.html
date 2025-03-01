@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+    <h1>Relatório de Vendas</h1>
+    
+    <h2>Vendas por Vendedor</h2>
+    <table border="1">
+        <tr>
+            <th>Vendedor</th>
+            <th>Mês</th>
+            <th>Ano</th>
+            <th>Total Vendido</th>
+        </tr>
+        {% for venda in vendas_por_vendedor %}
+        <tr>
+            <td>{{ venda.vendedor__username }}</td>
+            <td>{{ venda.mes_venda }}</td>
+            <td>{{ venda.ano_venda }}</td>
+            <td>{{ venda.total_vendido }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Vendas por Loja</h2>
+    <table border="1">
+        <tr>
+            <th>Loja</th>
+            <th>Mês</th>
+            <th>Ano</th>
+            <th>Total Vendido</th>
+        </tr>
+        {% for venda in vendas_por_loja %}
+        <tr>
+            <td>{{ venda.loja__nome }}</td>
+            <td>{{ venda.mes_venda }}</td>
+            <td>{{ venda.ano_venda }}</td>
+            <td>{{ venda.total_vendido }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
