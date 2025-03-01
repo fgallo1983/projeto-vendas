@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Venda</title>
+    {% load static %}
+    <!-- Vincula o arquivo CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <h2>Registrar Venda</h2>
@@ -28,6 +31,6 @@
         <button type="submit">Salvar Venda</button>
     </form>
 
-    <a href="{% url 'pagina_vendas' %}">Voltar</a>
+<center><a href="{% url 'pagina_vendas' %}">Voltar</a></center>
 </body>
 </html>

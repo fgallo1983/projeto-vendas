@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página de Vendas</title>
+    {% load static %}
+    <!-- Vincula o arquivo CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <h2>Bem-vindo à Página de Vendas!</h2>
-    <p>Esta é a área onde os vendedores podem registrar suas vendas.</p>
-    <a href="{% url 'registrar_venda' %}">Registrar uma nova venda</a>
+    <center><p>Esta é a área onde os vendedores podem registrar suas vendas.</p>
+    <a href="{% url 'registrar_venda' %}">Registrar uma nova venda</a></center>
 </body>
 </html>
