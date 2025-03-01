@@ -26,8 +26,9 @@ def index(request):
 def pagina_vendas(request):
     if not request.user.is_authenticated:
         return redirect('index')  # Redireciona para a página de login se o usuário não estiver autenticado
-
-    return render(request, 'pagina_vendas.html')
+    
+    arquivos = ArquivoVendedor.objects.filter(vendedor=request.user)  # ou outro critério
+    return render(request, 'pagina_vendas.html', {'arquivos': arquivos})
 
 @login_required
 def registrar_venda(request):
@@ -41,11 +42,7 @@ def registrar_venda(request):
     else:
         form = VendaForm()
     
-    # Busca os arquivos enviados pelo vendedor logado
-    arquivos = ArquivoVendedor.objects.filter(vendedor=request.user)
-
-    # Passa a variável 'arquivos' junto com o formulário para o template
-    return render(request, 'registrar_venda.html', {'form': form, 'arquivos': arquivos})
+    return render(request, 'registrar_venda.html', {'form': form})
 
 
 
