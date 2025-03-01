@@ -36,7 +36,6 @@ class Venda(models.Model):
 class ArquivoVendedor(models.Model):
     vendedor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Aponta para CustomUser
     arquivo = models.FileField(upload_to='arquivos_vendedores/')
-    data_upload = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = "Arquivo vendendor"  # Nome singular

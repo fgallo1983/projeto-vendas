@@ -4,6 +4,7 @@ from .forms import VendaForm
 from .models import Venda
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
+from .models import ArquivoVendedor
 
 
 def index(request):
@@ -40,5 +41,11 @@ def registrar_venda(request):
     else:
         form = VendaForm()
     
-    return render(request, 'registrar_venda.html', {'form': form})
+    # Busca os arquivos enviados pelo vendedor logado
+    arquivos = ArquivoVendedor.objects.filter(vendedor=request.user)
+
+    # Passa a variável 'arquivos' junto com o formulário para o template
+    return render(request, 'registrar_venda.html', {'form': form, 'arquivos': arquivos})
+
+
 
