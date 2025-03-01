@@ -1,34 +1,21 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Venda</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    {% load static %}
+    <!-- Vincula o arquivo CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <div class="container">
         <h2>Registrar Venda</h2>
-        <form method="POST">
+        <form method="POST" action="{% url 'registrar_venda' %}">
             {% csrf_token %}
-            
-            <label for="id_produto">Produto:</label>
-            {{ form.produto }}
-
-            <label for="id_loja">Loja:</label>
-            {{ form.loja }}
-
-            <label for="id_quantidade_vendida">Quantidade Vendida:</label>
-            {{ form.quantidade_vendida }}
-
-            <label for="id_mes_venda">Mês da Venda:</label>
-            {{ form.mes_venda }}
-
-            <label for="id_ano_venda">Ano da Venda:</label>
-            {{ form.ano_venda }}
-
-            <button type="submit">Salvar Venda</button>
+            {{ form.as_p }}
+            <button type="submit">Registrar Venda</button>
         </form>
         <a href="{% url 'pagina_vendas' %}">Voltar</a>
     </div>

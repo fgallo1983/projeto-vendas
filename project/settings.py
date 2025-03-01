@@ -116,9 +116,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 
-# STATICFILES_DIRS = [BASE_DIR / "static]
+# STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Diretório onde os arquivos estáticos serão armazenados
+STATIC_URL = '/vendas/static/'
+
+# Diretório onde os arquivos estáticos ficam durante o desenvolvimento
+STATICFILES_DIRS = [
+    BASE_DIR / 'vendas/static/',  # Altere conforme sua estrutura de pastas
+]
+
+# Diretório de arquivos estáticos coletados (para produção)
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'collectstatic'
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -126,3 +139,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/pagina-vendas/'
+
+AUTH_USER_MODEL = 'vendas.CustomUser'
+
+# Defina os diretórios para arquivos de mídia
+MEDIA_URL = '/vendas/media/'
+MEDIA_ROOT = BASE_DIR / 'vendas/media'
