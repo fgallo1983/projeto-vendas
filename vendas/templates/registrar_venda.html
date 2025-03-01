@@ -1,36 +1,36 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Venda</title>
-    {% load static %}
-    <!-- Vincula o arquivo CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <h2>Registrar Venda</h2>
+    <div class="container">
+        <h2>Registrar Venda</h2>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <label for="id_produto">Produto:</label>
+            {{ form.produto }}
 
-    <form method="POST">
-        {% csrf_token %}
-        
-        {% for field in form %}
-            <p>
-                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                {{ field }}
-            </p>
-            {% if field.errors %}
-                <ul>
-                    {% for error in field.errors %}
-                        <li style="color: red;">{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endfor %}
+            <label for="id_loja">Loja:</label>
+            {{ form.loja }}
 
-        <button type="submit">Salvar Venda</button>
-    </form>
+            <label for="id_quantidade_vendida">Quantidade Vendida:</label>
+            {{ form.quantidade_vendida }}
 
-<center><a href="{% url 'pagina_vendas' %}">Voltar</a></center>
+            <label for="id_mes_venda">Mês da Venda:</label>
+            {{ form.mes_venda }}
+
+            <label for="id_ano_venda">Ano da Venda:</label>
+            {{ form.ano_venda }}
+
+            <button type="submit">Salvar Venda</button>
+        </form>
+        <a href="{% url 'pagina_vendas' %}">Voltar</a>
+    </div>
 </body>
 </html>

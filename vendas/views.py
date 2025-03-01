@@ -32,11 +32,13 @@ def pagina_vendas(request):
 def registrar_venda(request):
     if request.method == 'POST':
         form = VendaForm(request.POST)
-        form.user = request.user  # Passa o usuário logado para o formulário
         if form.is_valid():
-            form.save()  # Salva a venda com o vendedor associado
-            return redirect('pagina_vendas')  # Redireciona para a página de vendas
+            venda = form.save(commit=False)
+            venda.vendedor = request.user  # Associa a venda ao vendedor logado
+            venda.save()
+            return redirect('pagina_vendas')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
+    
     return render(request, 'registrar_venda.html', {'form': form})
 

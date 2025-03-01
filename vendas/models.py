@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
 
 # Modelo Produto
 class Produto(models.Model):
@@ -32,14 +33,14 @@ class Venda(models.Model):
     loja = models.ForeignKey(Loja, on_delete=models.CASCADE)
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE)
     quantidade_vendida = models.PositiveIntegerField()  # Quantidade vendida pelo vendedor
-    data_venda = models.DateField(auto_now_add=True)  # Captura a data automaticamente
+    mes_venda = models.IntegerField(choices=[(i, i) for i in range(1, 13)], default=datetime.date.today().month)  
+    ano_venda = models.IntegerField(choices=[(i, i) for i in range(2020, 2031)], default=datetime.date.today().year)
 
     
     def __str__(self):
-        return f'{self.produto.nome} vendido por {self.vendedor.username} em {self.data_venda}'
-
-
-
+        return f"{self.produto.nome} - {self.quantidade_vendida} unidades - {self.mes_venda}/{self.ano_venda}"
+    
+    
 # Modelo para Upload de Arquivo do Vendedor
 class ArquivoVendedor(models.Model):
     vendedor = models.ForeignKey(Vendedor, on_delete=models.CASCADE)

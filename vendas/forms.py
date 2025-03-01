@@ -4,7 +4,7 @@ from vendas.models import Venda, Produto, Loja
 class VendaForm(forms.ModelForm):
     class Meta:
         model = Venda
-        fields = ['produto', 'quantidade_vendida', 'loja', 'mes', 'ano']
+        fields = ['produto', 'loja', 'quantidade_vendida', 'mes_venda', 'ano_venda']
 
     produto = forms.ModelChoiceField(queryset=Produto.objects.all(), label="Produto")
     quantidade_vendida = forms.IntegerField(min_value=1, label="Quantidade")
