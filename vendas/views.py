@@ -8,22 +8,28 @@ from .models import ArquivoVendedor
 from django.db.models import Sum
 from django.contrib.auth.decorators import user_passes_test
 
-
 def index(request):
-    # Se o usuário já estiver autenticado, redireciona para a página de vendas ou página inicial.
+    # Se o usuário já estiver autenticado, redireciona para a página apropriada.
     if request.user.is_authenticated:
-        return redirect('pagina_vendas')  # Ajuste para o nome da sua página de vendas
+        if request.user.is_staff:
+            return redirect('relatorio_vendas')  # Redireciona para o relatório de vendas para administradores
+        else:
+            return redirect('pagina_vendas')  # Redireciona para a página de vendas para vendedores
 
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)  # Realiza o login do usuário
-            return redirect('pagina_vendas')  # Redireciona para a página de vendas após o login bem-sucedido
+            if user.is_staff:
+                return redirect('relatorio_vendas')  # Redireciona para os administradores
+            else:
+                return redirect('pagina_vendas')  # Redireciona para os vendedores
     else:
         form = AuthenticationForm()
 
     return render(request, 'index.html', {'form': form})
+
 
 def pagina_vendas(request):
     if not request.user.is_authenticated:
@@ -86,24 +92,3 @@ def relatorio_vendas(request):
         vendas_por_loja = vendas_por_loja.filter(ano_venda=ano)
 
     return render(request, 'relatorio_vendas.html', {'vendas_agrupadas': vendas_agrupadas, 'vendas_por_loja': vendas_por_loja, 'mes': mes, 'ano': ano,})
-
-
-
-# def relatorio_vendas(request):
-#     mes = request.GET.get('mes', None)
-#     ano = request.GET.get('ano', None)
-    
-#     vendas_por_vendedor = Venda.objects.values('vendedor__first_name', 'vendedor__last_name', 'mes_venda', 'ano_venda') \
-#         .filter(mes_venda=mes, ano_venda=ano) if mes and ano else Venda.objects.values('vendedor__first_name', 'vendedor__last_name', 'mes_venda', 'ano_venda') \
-#         .annotate(total_vendido=Sum('quantidade_vendida'))
-    
-#     vendas_por_loja = Venda.objects.values('loja__nome', 'mes_venda', 'ano_venda') \
-#         .filter(mes_venda=mes, ano_venda=ano) if mes and ano else Venda.objects.values('loja__nome', 'mes_venda', 'ano_venda') \
-#         .annotate(total_vendido=Sum('quantidade_vendida'))
-
-#     return render(request, 'relatorio_vendas.html', {
-#         'vendas_por_vendedor': vendas_por_vendedor,
-#         'vendas_por_loja': vendas_por_loja,
-#         'mes': mes,
-#         'ano': ano,
-#     })
