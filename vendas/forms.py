@@ -17,3 +17,4 @@ class VendaForm(forms.ModelForm):
             venda.vendedor = self.user  # Associar o vendedor logado à venda
             venda.save()
         return venda
+

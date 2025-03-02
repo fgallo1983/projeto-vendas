@@ -17,10 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from vendas import views 
+from vendas.admin import admin_site  # Importa a instância personalizada de admin
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # URL do painel administrativo
+    path('admin/', admin_site.urls),  # Usando o admin personalizado
     path('accounts/', include('django.contrib.auth.urls')),  # URLs de login e logout padrão do Django
     path('', views.index, name='index'),  # Página inicial com o formulário de login
     path('', include('vendas.urls')),  # Inclui as URLs do app "vendas"

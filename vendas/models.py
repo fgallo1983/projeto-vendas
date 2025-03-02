@@ -48,8 +48,8 @@ class CustomUser(AbstractUser):
     loja = models.ForeignKey(Loja, on_delete=models.CASCADE, null=True, blank=True)
     
     class Meta:
-        verbose_name = "Vendedor"  # Nome singular
-        verbose_name_plural = "Vendedores"  # Nome plural
+        verbose_name = "Vendedora"  # Nome singular
+        verbose_name_plural = "Vendedoras"  # Nome plural
 
     def __str__(self):
-        return self.username
+        return f"{self.first_name} {self.last_name}"  # Retorna o nome completo do usuário

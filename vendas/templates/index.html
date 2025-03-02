@@ -9,12 +9,31 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h2>Login do Vendedor</h2>
 
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}  <!-- Renderiza o formulário de login -->
-        <button type="submit">Login</button>
-    </form>
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100">
+                <span class="login100-form-title">Bem vindo(a)!</span>
+                <img src="{% static 'images/logo_lokenzzi.jpg' %}" alt="Logo Lokenzzi">
+                <form method="POST">
+                    {% csrf_token %}
+                    <!-- Renderizando os campos individualmente com classes personalizadas -->
+                    <div class="wrap-input100">
+                        <label for="{{ form.username.id_for_label }}">Usuário:</label><br>
+                        {{ form.username }}
+                    </div>
+                    <div class="wrap-input100">
+                        <label for="{{ form.password.id_for_label }}">Senha:</label><br>
+                        {{ form.password }}
+                    </div>
+
+                    <div class="container-login100-form-btn">
+                        <button type="submit" class="login100-form-btn">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
