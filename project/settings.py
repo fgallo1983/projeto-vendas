@@ -138,7 +138,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'c
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/pagina-vendas/'
+# LOGIN_REDIRECT_URL = '/pagina-vendas/'
 
 AUTH_USER_MODEL = 'vendas.CustomUser'
 

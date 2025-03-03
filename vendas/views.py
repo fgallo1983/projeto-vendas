@@ -3,40 +3,38 @@ from django.contrib.auth.decorators import login_required
 from .forms import VendaForm
 from .models import Venda
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from .models import ArquivoVendedor
 from django.db.models import Sum
 from django.contrib.auth.decorators import user_passes_test
 
 def index(request):
-    # Se o usuário já estiver autenticado, redireciona para a página apropriada.
     if request.user.is_authenticated:
         if request.user.is_staff:
-            return redirect('relatorio_vendas')  # Redireciona para o relatório de vendas para administradores
+            return redirect('home_adm')
         else:
-            return redirect('pagina_vendas')  # Redireciona para a página de vendas para vendedores
+            return redirect('home_vendedor')
 
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)  # Realiza o login do usuário
-            if user.is_staff:
-                return redirect('relatorio_vendas')  # Redireciona para os administradores
-            else:
-                return redirect('pagina_vendas')  # Redireciona para os vendedores
+            login(request, user)
+            return redirect('home_adm' if user.is_staff else 'home_vendedor')
+
     else:
         form = AuthenticationForm()
 
     return render(request, 'index.html', {'form': form})
 
+@login_required
+def home_vendedor(request):
+    return render(request, 'home_vendedor.html')
 
-def pagina_vendas(request):
-    if not request.user.is_authenticated:
-        return redirect('index')  # Redireciona para a página de login se o usuário não estiver autenticado
-    
-    arquivos = ArquivoVendedor.objects.filter(vendedor=request.user)  # ou outro critério
-    return render(request, 'pagina_vendas.html', {'arquivos': arquivos})
+@login_required
+def home_adm(request):
+    return render(request, 'home_adm.html')
+
 
 @login_required
 def registrar_venda(request):
@@ -92,3 +90,16 @@ def relatorio_vendas(request):
         vendas_por_loja = vendas_por_loja.filter(ano_venda=ano)
 
     return render(request, 'relatorio_vendas.html', {'vendas_agrupadas': vendas_agrupadas, 'vendas_por_loja': vendas_por_loja, 'mes': mes, 'ano': ano,})
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+
+@login_required
+def pagina_roteiros(request):
+    return render(request, 'roteiros.html')
+
+@login_required
+def enviar_roteiro(request):
+    return render(request, 'enviar_roteiro.html')

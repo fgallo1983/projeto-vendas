@@ -1,0 +1,26 @@
+{% load static %}
+<div class="header">
+    <div class="header-left">
+        <span>Bem-vindo, {{ user.username }}</span>
+    </div>
+
+    <div class="header-center">
+        {% if user.is_staff %}
+            <a href="{% url 'home_adm' %}">HOME</a>
+            <a href="{% url 'relatorio_vendas' %}">RELATÓRIO DE VENDAS</a>
+        {% else %}
+            <a href="{% url 'home_vendedor' %}">HOME</a>
+            <a href="{% url 'registrar_venda' %}">CADASTRO DE SELOS</a>
+        {% endif %}
+
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo">
+
+        {% if user.is_staff %}
+            <a href="{% url 'enviar_roteiro' %}">ENVIAR ROTEIRO</a>
+        {% else %}
+            <a href="{% url 'roteiros' %}">ROTEIROS</a>
+        {% endif %}
+
+        <a href="{% url 'logout' %}">LOGOUT</a>
+    </div>
+</div>
