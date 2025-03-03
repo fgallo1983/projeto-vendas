@@ -25,13 +25,11 @@ class Venda(models.Model):
     loja = models.ForeignKey(Loja, on_delete=models.CASCADE)
     vendedor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Aponta para CustomUser
     quantidade_vendida = models.PositiveIntegerField()  # Quantidade vendida pelo vendedor
-    dia_venda = models.IntegerField()
-    mes_venda = models.IntegerField(choices=[(i, i) for i in range(1, 13)], default=datetime.date.today().month)  
-    ano_venda = models.IntegerField(choices=[(i, i) for i in range(2020, 2031)], default=datetime.date.today().year)
+    data_venda = models.DateField()  # Usamos uma única coluna para armazenar a data completa da venda
 
     
     def __str__(self):
-        return f"{self.produto.nome} - {self.quantidade_vendida} unidades - {self.dia_venda}/{self.mes_venda}/{self.ano_venda}"
+        return f"{self.produto.nome} - {self.quantidade_vendida} unidades - {self.data_venda}"
     
     
 # Modelo para Upload de Arquivo do Vendedor

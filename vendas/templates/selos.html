@@ -1,7 +1,51 @@
-<!-- selos.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-    <h1>Selos</h1>
-    <p>Aqui você pode visualizar os selos e outras informações.</p>
+    <div class="form-container">
+        <h1>Selos</h1>
+
+        <!-- Exibe a mensagem de sucesso -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <h2>Relatório de Vendas - {{ request.user.first_name }}</h2>
+        <p>Mês atual: {{ mes_atual }}/{{ ano_atual }}</p>
+
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Semana</th>
+                    <th>Loja</th>
+                    <th>Peças Vendidas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venda in vendas %}
+                    <tr>
+                        <td>{{ venda.data_venda }}</td>  <!-- Acessando o valor de data_venda -->
+                        <td>{{ venda.dia_semana }}</td>  <!-- Acessando o valor de dia_semana -->
+                        <td>{{ venda.loja }}</td>        <!-- Acessando o nome da loja -->
+                        <td>{{ venda.quantidade_vendida }}</td>  <!-- Acessando a quantidade vendida -->
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">Nenhuma venda registrada este mês.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Total Vendido</strong></td>
+                    <td><strong>{{ total_vendido }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 {% endblock %}

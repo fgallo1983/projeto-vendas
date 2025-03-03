@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import VendaForm
 from .models import Venda
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .models import ArquivoVendedor
 from django.db.models import Sum
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+import datetime
+
 
 def index(request):
     if request.user.is_authenticated:
@@ -44,6 +46,7 @@ def registrar_venda(request):
             venda = form.save(commit=False)
             venda.vendedor = request.user  # Associa a venda ao vendedor logado
             venda.save()
+            messages.success(request, "Venda cadastrada com sucesso!")  # Adiciona mensagem de sucesso
             return redirect('selos')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
@@ -106,5 +109,50 @@ def enviar_roteiro(request):
 
 @login_required
 def selos(request):
-    # Renderiza a página de selos
-    return render(request, 'selos.html')
+    today = datetime.date.today()
+    mes_atual = today.month
+    ano_atual = today.year
+    
+    # Consultar as vendas do vendedor logado para o mês e ano atuais, e por data completa
+    vendas = Venda.objects.filter(
+        vendedor=request.user,
+        data_venda__year=ano_atual,
+        data_venda__month=mes_atual
+    ).order_by('data_venda')
+
+    # Dicionário de tradução dos dias da semana
+    dias_da_semana = {
+        'Monday': 'Segunda-feira',
+        'Tuesday': 'Terça-feira',
+        'Wednesday': 'Quarta-feira',
+        'Thursday': 'Quinta-feira',
+        'Friday': 'Sexta-feira',
+        'Saturday': 'Sábado',
+        'Sunday': 'Domingo'
+    }
+
+    # Criar uma lista de vendas com as datas formatadas
+    vendas_formatadas = []
+    for venda in vendas:
+        dia_semana = venda.data_venda.strftime('%A')  # Retorna o nome do dia da semana em inglês
+        dia_semana_pt = dias_da_semana.get(dia_semana, dia_semana)  # Traduz para o português
+
+        vendas_formatadas.append({
+            'data_venda': venda.data_venda.strftime('%d/%m/%Y'),
+            'dia_semana': dia_semana_pt,
+            'loja': venda.loja.nome,
+            'quantidade_vendida': venda.quantidade_vendida
+        })
+
+    # Calcular o total vendido
+    total_vendido = sum(venda['quantidade_vendida'] for venda in vendas_formatadas)
+
+    # Passar o mês, ano e vendas ao template
+    context = {
+        'vendas': vendas_formatadas,
+        'mes_atual': mes_atual,
+        'ano_atual': ano_atual,
+        'total_vendido': total_vendido
+    }
+
+    return render(request, 'selos.html', context)

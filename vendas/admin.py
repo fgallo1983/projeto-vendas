@@ -50,22 +50,26 @@ admin_site.register(CustomUser, CustomUserAdmin)
 
 # Classe personalizada para o modelo Venda
 class VendaAdmin(admin.ModelAdmin):
-    list_display = ('vendedor', 'loja', 'mes_venda', 'ano_venda', 'quantidade_total_vendida')
-    list_filter = ('vendedor', 'loja', 'mes_venda', 'ano_venda')  # Filtros no admin
-    ordering = ['ano_venda', 'mes_venda']  # Ordenação padrão
-
+    # Exibe as colunas no admin
+    list_display = ('vendedor_nome_completo', 'loja', 'data_venda', 'quantidade_total_vendida')
+    
+    # Filtros no admin
+    list_filter = ('vendedor', 'loja', 'data_venda')  # Filtra por vendedor, loja e data
+    
+    # Ordenação padrão (usando data_venda)
+    ordering = ['data_venda']
+    
+    # Função para calcular o total vendido no mês
     def quantidade_total_vendida(self, obj):
         """Retorna a soma das quantidades vendidas por vendedor no mês"""
         total = Venda.objects.filter(
             vendedor=obj.vendedor,
-            mes_venda=obj.mes_venda,
-            ano_venda=obj.ano_venda
+            data_venda__month=obj.data_venda.month,  # Filtra pelo mês da data
+            data_venda__year=obj.data_venda.year  # Filtra pelo ano da data
         ).aggregate(total=Sum('quantidade_vendida'))['total']
         
         return total or 0  # Retorna 0 se não houver vendas
 
-    # quantidade_total_vendida.short_description = 'Total Vendido'
-    
     def vendedor_nome_completo(self, obj):
         """Retorna o nome completo do vendedor"""
         return f"{obj.vendedor.first_name} {obj.vendedor.last_name}"  # Usando first_name e last_name do vendedor
