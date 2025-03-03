@@ -44,7 +44,7 @@ def registrar_venda(request):
             venda = form.save(commit=False)
             venda.vendedor = request.user  # Associa a venda ao vendedor logado
             venda.save()
-            return redirect('pagina_vendas')  # Redireciona para a lista de vendas
+            return redirect('registrar_venda')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
     

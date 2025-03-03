@@ -1,15 +1,9 @@
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Venda</title>
-    {% load static %}
-    <!-- Vincula o arquivo CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
     <div class="container">
         <h2>Registrar Venda</h2>
         <form method="POST" action="{% url 'registrar_venda' %}">
@@ -17,7 +11,5 @@
             {{ form.as_p }}
             <button type="submit">Registrar Venda</button>
         </form>
-        <a href="{% url 'pagina_vendas' %}">Voltar</a>
     </div>
-</body>
-</html>
+{% endblock %}
