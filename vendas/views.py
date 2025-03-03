@@ -44,7 +44,7 @@ def registrar_venda(request):
             venda = form.save(commit=False)
             venda.vendedor = request.user  # Associa a venda ao vendedor logado
             venda.save()
-            return redirect('registrar_venda')  # Redireciona para a lista de vendas
+            return redirect('selos')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
     
@@ -102,4 +102,9 @@ def pagina_roteiros(request):
 
 @login_required
 def enviar_roteiro(request):
-    return render(request, 'enviar_roteiro.html')
+    return render(request, 'enviar_roteiro.html')@login_required
+
+@login_required
+def selos(request):
+    # Renderiza a página de selos
+    return render(request, 'selos.html')
