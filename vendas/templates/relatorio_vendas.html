@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 {% block content %}
+<div class="form-container">
 
 <h2>Relatório de Vendas</h2>
 
@@ -42,12 +43,12 @@
 
 <!-- Tabela de Vendas por Vendedor -->
 <h3>Vendas por Vendedora</h3>
+<p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
 <table border="1">
     <thead>
         <tr>
             <th>#</th>  <!-- Nova coluna para o número -->
             <th>Vendedora</th>
-            <th>Data</th>
             <th>Total Vendido</th>
         </tr>
     </thead>
@@ -56,7 +57,6 @@
             <tr>
                 <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
                 <td>{{ venda.vendedor__first_name }} {{ venda.vendedor__last_name }}</td>
-                <td>{{ venda.data_venda }}</td>
                 <td>{{ venda.total_vendido }}</td>
             </tr>
         {% empty %}
@@ -65,6 +65,7 @@
     </tbody>
 </table>
 
+<br>
 <!-- Tabela de Vendas por Loja -->
 <h3>Vendas por Loja</h3>
 <table border="1">
@@ -72,7 +73,6 @@
         <tr>
             <th>#</th>  <!-- Nova coluna para o número -->
             <th>Loja</th>
-            <th>Data</th>
             <th>Total Vendido</th>
         </tr>
     </thead>
@@ -81,7 +81,6 @@
             <tr>
                 <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
                 <td>{{ venda.loja__nome }}</td>
-                <td>{{ venda.data_venda }}</td>
                 <td>{{ venda.total_vendido }}</td>
             </tr>
         {% empty %}
@@ -89,5 +88,5 @@
         {% endfor %}
     </tbody>
 </table>
-
+</div>
 {% endblock %}

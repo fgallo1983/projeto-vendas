@@ -73,38 +73,57 @@ def is_admin(user):
 @user_passes_test(is_admin, login_url='/')  # Redireciona para o login se não for admin
 def relatorio_vendas(request):
     
+    today = datetime.date.today()
+    mes_atual = today.month
+    ano_atual = today.year
+    
+    # Pega o mês e o ano da URL (caso existam)
     mes = request.GET.get('mes', None)
     ano = request.GET.get('ano', None)
     
-    vendas_agrupadas = Venda.objects.values('vendedor', 'vendedor__first_name', 'vendedor__last_name', 'mes_venda', 'ano_venda') \
-        .annotate(total_vendido=Sum('quantidade_vendida'))  # Calcula o total de vendas por vendedor
+    # Caso os filtros sejam informados, converte para inteiros
+    try:
+        if mes:
+            mes = int(mes)
+        if ano:
+            ano = int(ano)
+    except ValueError:
+        mes = None
+        ano = None
+    
+    # Inicializa a queryset para vendas agrupadas por vendedor
+    vendas_agrupadas = Venda.objects.values('vendedor', 'vendedor__first_name', 'vendedor__last_name') \
+        .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por vendedor
+    
+    if ano:
+        vendas_agrupadas = vendas_agrupadas.filter(data_venda__year=ano)
+    if mes:
+        vendas_agrupadas = vendas_agrupadas.filter(data_venda__month=mes)
         
-    if mes and ano:
-        # Adiciona os filtros de mês e ano
-        vendas_agrupadas = vendas_agrupadas.filter(mes_venda=mes, ano_venda=ano)
-    elif mes:
-        # Adiciona apenas o filtro de mês, caso o ano não tenha sido fornecido
-        vendas_agrupadas = vendas_agrupadas.filter(mes_venda=mes)
-    elif ano:
-        # Adiciona apenas o filtro de ano, caso o mês não tenha sido fornecido
-        vendas_agrupadas = vendas_agrupadas.filter(ano_venda=ano)
+    vendas_agrupadas = vendas_agrupadas.order_by('-total_vendido')  # Maior quantidade vendida primeiro
+    
+    # Inicializa a queryset para vendas agrupadas por loja
+    vendas_por_loja = Venda.objects.values('loja', 'loja__nome') \
+        .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por loja
+    
+    if ano:
+        vendas_por_loja = vendas_por_loja.filter(data_venda__year=ano)
+    if mes:
+        vendas_por_loja = vendas_por_loja.filter(data_venda__month=mes)
         
-        # Agregar vendas por loja e mês/ano
-        
-    vendas_por_loja = Venda.objects.values('loja', 'loja__nome', 'mes_venda', 'ano_venda') \
-        .annotate(total_vendido=Sum('quantidade_vendida'))  # Calcula o total de vendas por loja
-        
-    if mes and ano:
-        # Adiciona os filtros de mês e ano
-        vendas_por_loja = vendas_por_loja.filter(mes_venda=mes, ano_venda=ano)
-    elif mes:
-        # Adiciona apenas o filtro de mês, caso o ano não tenha sido fornecido
-        vendas_por_loja = vendas_por_loja.filter(mes_venda=mes)
-    elif ano:
-        # Adiciona apenas o filtro de ano, caso o mês não tenha sido fornecido
-        vendas_por_loja = vendas_por_loja.filter(ano_venda=ano)
+    vendas_por_loja = vendas_por_loja.order_by('-total_vendido')  # Maior quantidade vendida primeiro
+    
+    # Passando os dados para o template
+    context = {
+        'vendas_agrupadas': vendas_agrupadas,
+        'vendas_por_loja': vendas_por_loja,
+        'mes': mes,
+        'ano': ano,
+        'mes_atual': mes_atual,
+        'ano_atual': ano_atual,
+    }
 
-    return render(request, 'relatorio_vendas.html', {'vendas_agrupadas': vendas_agrupadas, 'vendas_por_loja': vendas_por_loja, 'mes': mes, 'ano': ano,})
+    return render(request, 'relatorio_vendas.html', context)
 
 @login_required
 def logout_view(request):
@@ -191,7 +210,7 @@ def selos(request):
     context = {
         'vendas': vendas_formatadas,
         'mes_atual': mes,  # Passa o mês filtrado para o template
-        'ano_atual': ano_atual,
+        'ano_atual': ano,
         'total_vendido': total_vendido,
         'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
         'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
