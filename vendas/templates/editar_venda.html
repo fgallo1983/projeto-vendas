@@ -1,0 +1,15 @@
+
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <div class="form-container">
+        <h2>Editar Venda</h2><br>
+        <form method="POST" action="{% url 'editar_venda' venda.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}  <!-- Formulário renderizado aqui -->
+            <button type="submit">Editar Venda</button>
+        </form>
+    </div>
+{% endblock %}

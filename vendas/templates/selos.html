@@ -8,14 +8,14 @@
             <label for="ano">Ano:</label>
             <select name="ano">
                 {% for ano in anos_disponiveis %}
-                    <option value="{{ ano }}" {% if ano == ano %}selected{% endif %}>{{ ano }}</option>
+                    <option value="{{ ano }}" {% if ano_atual == ano %}selected{% endif %}>{{ ano }}</option>
                 {% endfor %}
             </select>
         
             <label for="mes">Mês:</label>
             <select name="mes">
                 {% for mes in meses_disponiveis %}
-                    <option value="{{ mes }}" {% if mes == mes %}selected{% endif %}>
+                    <option value="{{ mes }}" {% if mes_atual == mes %}selected{% endif %}>
                         {% if mes == 1 %}Janeiro{% elif mes == 2 %}Fevereiro{% elif mes == 3 %}Março{% elif mes == 4 %}Abril{% elif mes == 5 %}Maio{% elif mes == 6 %}Junho{% elif mes == 7 %}Julho{% elif mes == 8 %}Agosto{% elif mes == 9 %}Setembro{% elif mes == 10 %}Outubro{% elif mes == 11 %}Novembro{% elif mes == 12 %}Dezembro{% endif %}
                     </option>
                 {% endfor %}
@@ -29,7 +29,7 @@
         <!-- Exibe a mensagem de sucesso -->
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-success">
+                <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
                     {{ message }}
                 </div>
             {% endfor %}

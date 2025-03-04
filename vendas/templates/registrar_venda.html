@@ -9,7 +9,7 @@
         <form method="POST" action="{% url 'registrar_venda' %}">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit">Registrar Venda</button>
+            <button type="submit">Cadastrar Venda</button>
         </form>
     </div>
 {% endblock %}

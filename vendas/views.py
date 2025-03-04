@@ -40,18 +40,29 @@ def home_adm(request):
 
 
 @login_required
-def registrar_venda(request):
+def registrar_venda(request, venda_id=None):
     if request.method == 'POST':
         form = VendaForm(request.POST)
         if form.is_valid():
             venda = form.save(commit=False)
-            venda.vendedor = request.user  # Associa a venda ao vendedor logado
-            venda.save()
-            messages.success(request, "Venda cadastrada com sucesso!")  # Adiciona mensagem de sucesso
+            
+            # Verifica se já existe uma venda com a mesma data para o vendedor
+            existe_venda = Venda.objects.filter(
+                vendedor=request.user,
+                data_venda=venda.data_venda
+            ).exclude(id=venda_id).exists()
+
+            if existe_venda:
+                messages.error(request, "Você já cadastrou uma venda nessa data!")
+            else:
+                venda.vendedor = request.user  # Associa a venda ao vendedor logado
+                venda.save()
+                messages.success(request, "Venda cadastrada com sucesso!")  # Adiciona mensagem de sucesso
+
             return redirect('selos')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
-    
+
     return render(request, 'registrar_venda.html', {'form': form})
 
 
@@ -115,7 +126,7 @@ def selos(request):
     ano_atual = today.year
     
     # Lista de anos para o filtro (ajuste conforme necessário)
-    anos_disponiveis = list(range(2020, ano_atual + 1))  # Gera uma lista de anos de 2020 até o ano atual
+    anos_disponiveis = list(range(ano_atual, 2031))  # De ano_atual até 2030
     
     # Gerar uma lista de meses de Janeiro a Dezembro para cada ano
     meses_disponiveis = list(range(1, 13))  # Meses de 1 a 12 (Janeiro a Dezembro)
@@ -203,7 +214,7 @@ def editar_venda(request, venda_id):
     else:
         form = VendaForm(instance=venda)
 
-    return render(request, 'registrar_venda.html', {'form': form})
+    return render(request, 'editar_venda.html', {'form': form, 'venda': venda})
 
 
 
