@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import VendaForm
 from .models import Venda
@@ -8,6 +8,7 @@ from .models import ArquivoVendedor
 from django.db.models import Sum
 from django.contrib import messages
 import datetime
+from django.db.models import Min  # Importar para pegar o menor ID do grupo
 
 
 def index(request):
@@ -113,12 +114,20 @@ def selos(request):
     mes_atual = today.month
     ano_atual = today.year
     
-    # Consultar as vendas do vendedor logado para o mês e ano atuais, e por data completa
-    vendas = Venda.objects.filter(
-        vendedor=request.user,
-        data_venda__year=ano_atual,
-        data_venda__month=mes_atual
-    ).order_by('data_venda')
+    # Agrupar as vendas por dia e loja, somando a quantidade vendida e pegando um ID qualquer (o menor)
+    vendas = (
+        Venda.objects.filter(
+            vendedor=request.user,
+            data_venda__month=mes_atual,
+            data_venda__year=ano_atual
+        )
+        .values('data_venda', 'loja__nome')
+        .annotate(
+            total_vendido=Sum('quantidade_vendida'),
+            venda_id=Min('id')  # Pegamos o menor ID representativo do grupo
+        )
+        .order_by('data_venda')
+    )
 
     # Dicionário de tradução dos dias da semana
     dias_da_semana = {
@@ -134,14 +143,23 @@ def selos(request):
     # Criar uma lista de vendas com as datas formatadas
     vendas_formatadas = []
     for venda in vendas:
-        dia_semana = venda.data_venda.strftime('%A')  # Retorna o nome do dia da semana em inglês
+        data_venda = venda['data_venda']  # Acessa o valor como dicionário
+        dia_semana = data_venda.strftime('%A')  # Retorna o nome do dia da semana em inglês
         dia_semana_pt = dias_da_semana.get(dia_semana, dia_semana)  # Traduz para o português
 
+        # vendas_formatadas.append({
+        #     'data_venda': data_venda.strftime('%d/%m/%Y'),
+        #     'dia_semana': dia_semana_pt,
+        #     'loja': venda['loja__nome'],  # Correto para acessar a loja
+        #     'quantidade_vendida': venda['total_vendido']
+        # })
+        
         vendas_formatadas.append({
-            'data_venda': venda.data_venda.strftime('%d/%m/%Y'),
+            'id': venda['venda_id'],  # ✅ Pegando corretamente o ID representativo
+            'data_venda': data_venda.strftime('%d/%m/%Y'),  # ✅ Acessando data corretamente
             'dia_semana': dia_semana_pt,
-            'loja': venda.loja.nome,
-            'quantidade_vendida': venda.quantidade_vendida
+            'loja': venda['loja__nome'],  # ✅ Acessando nome da loja corretamente
+            'quantidade_vendida': venda['total_vendido']  # ✅ Acessando total vendido corretamente
         })
 
     # Calcular o total vendido
@@ -156,3 +174,29 @@ def selos(request):
     }
 
     return render(request, 'selos.html', context)
+
+@login_required
+def editar_venda(request, venda_id):
+    venda = get_object_or_404(Venda, id=venda_id, vendedor=request.user)
+
+    if request.method == "POST":
+        form = VendaForm(request.POST, instance=venda)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Venda editada com sucesso!")
+            return redirect('selos')
+    else:
+        form = VendaForm(instance=venda)
+
+    return render(request, 'registrar_venda.html', {'form': form})
+
+@login_required
+def apagar_venda(request, venda_id):
+    venda = get_object_or_404(Venda, id=venda_id, vendedor=request.user)
+
+    if request.method == "POST":
+        venda.delete()
+        messages.success(request, "Venda excluída com sucesso!")
+        return redirect('selos')
+
+    return render(request, 'confirmar_exclusao.html', {'venda': venda})

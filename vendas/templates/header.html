@@ -1,7 +1,7 @@
 {% load static %}
 <div class="header">
     <div class="header-left">
-        <span>Bem-vindo, {{ user.username }}</span>
+        <span>Bem-vindo, {{ request.user.first_name }}</span>
     </div>
 
     <div class="header-center">

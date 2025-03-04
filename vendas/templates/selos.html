@@ -24,6 +24,7 @@
                     <th>Semana</th>
                     <th>Loja</th>
                     <th>Peças Vendidas</th>
+                    <th>Ações</th> <!-- Nova coluna para os botões -->
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +34,19 @@
                         <td>{{ venda.dia_semana }}</td>  <!-- Acessando o valor de dia_semana -->
                         <td>{{ venda.loja }}</td>        <!-- Acessando o nome da loja -->
                         <td>{{ venda.quantidade_vendida }}</td>  <!-- Acessando a quantidade vendida -->
+                        <td>
+                            {% if venda.id %}
+                                <a href="{% url 'editar_venda' venda.id %}">
+                                    <img src="{% static 'images/btn-edit.png' %}" alt="Editar" width="20">
+                                </a>
+                        
+                                <a href="{% url 'apagar_venda' venda.id %}" onclick="return confirm('Tem certeza que deseja excluir esta venda?');">
+                                    <img src="{% static 'images/btn-erase.png' %}" alt="Excluir" width="20">
+                                </a>
+                            {% else %}
+                                <span>Erro: ID não encontrado</span>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>

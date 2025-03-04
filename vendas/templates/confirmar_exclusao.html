@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="form-container">
+
+        <form method="POST">
+            {% csrf_token %}
+            <p>Tem certeza que deseja excluir esta venda?</p>
+            <button type="submit">Sim, excluir</button>
+            <a href="{% url 'selos' %}">Cancelar</a>
+        </form>
+
+</div>
+{% endblock %}
