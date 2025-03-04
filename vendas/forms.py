@@ -15,7 +15,7 @@ class VendaForm(forms.ModelForm):
     def save(self, commit=True):
         venda = super().save(commit=False)
         if commit:
-            venda.vendedor = self.user  # Associar o vendedor logado à venda
+            # venda.vendedor = self.user  # Associar o vendedor logado à venda
             venda.save()
         return venda
 

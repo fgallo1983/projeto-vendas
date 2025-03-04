@@ -114,12 +114,30 @@ def selos(request):
     mes_atual = today.month
     ano_atual = today.year
     
+    # Lista de anos para o filtro (ajuste conforme necessário)
+    anos_disponiveis = list(range(2020, ano_atual + 1))  # Gera uma lista de anos de 2020 até o ano atual
+    
+    # Gerar uma lista de meses de Janeiro a Dezembro para cada ano
+    meses_disponiveis = list(range(1, 13))  # Meses de 1 a 12 (Janeiro a Dezembro)
+    
+    # Obter o ano e mês dos filtros ou usar o ano e mês atuais como padrão
+    ano = request.GET.get('ano', ano_atual)  # Pega o ano do filtro ou usa o ano atual
+    mes = request.GET.get('mes', mes_atual)  # Pega o mês do filtro ou usa o mês atual
+
+    # Validar e garantir que o ano e mês são válidos
+    try:
+        ano = int(ano)
+        mes = int(mes)
+    except ValueError:
+        ano = ano_atual
+        mes = mes_atual
+    
     # Agrupar as vendas por dia e loja, somando a quantidade vendida e pegando um ID qualquer (o menor)
     vendas = (
         Venda.objects.filter(
             vendedor=request.user,
-            data_venda__month=mes_atual,
-            data_venda__year=ano_atual
+            data_venda__month=mes,  # Corrigido para usar o mês filtrado
+            data_venda__year=ano  # Corrigido para usar o ano filtrado
         )
         .values('data_venda', 'loja__nome')
         .annotate(
@@ -147,13 +165,6 @@ def selos(request):
         dia_semana = data_venda.strftime('%A')  # Retorna o nome do dia da semana em inglês
         dia_semana_pt = dias_da_semana.get(dia_semana, dia_semana)  # Traduz para o português
 
-        # vendas_formatadas.append({
-        #     'data_venda': data_venda.strftime('%d/%m/%Y'),
-        #     'dia_semana': dia_semana_pt,
-        #     'loja': venda['loja__nome'],  # Correto para acessar a loja
-        #     'quantidade_vendida': venda['total_vendido']
-        # })
-        
         vendas_formatadas.append({
             'id': venda['venda_id'],  # ✅ Pegando corretamente o ID representativo
             'data_venda': data_venda.strftime('%d/%m/%Y'),  # ✅ Acessando data corretamente
@@ -168,9 +179,13 @@ def selos(request):
     # Passar o mês, ano e vendas ao template
     context = {
         'vendas': vendas_formatadas,
-        'mes_atual': mes_atual,
+        'mes_atual': mes,  # Passa o mês filtrado para o template
         'ano_atual': ano_atual,
-        'total_vendido': total_vendido
+        'total_vendido': total_vendido,
+        'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
+        'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
+        'ano': ano,  # Passa o ano filtrado para o template
+        'mes': mes,  # Passa o mês filtrado para o template
     }
 
     return render(request, 'selos.html', context)
@@ -189,6 +204,8 @@ def editar_venda(request, venda_id):
         form = VendaForm(instance=venda)
 
     return render(request, 'registrar_venda.html', {'form': form})
+
+
 
 @login_required
 def apagar_venda(request, venda_id):
