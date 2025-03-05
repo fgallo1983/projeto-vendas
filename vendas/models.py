@@ -36,13 +36,14 @@ class Venda(models.Model):
 class ArquivoVendedor(models.Model):
     vendedor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Aponta para CustomUser
     arquivo = models.FileField(upload_to='arquivos_vendedores/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)  # Data e hora do upload
     
     class Meta:
         verbose_name = "Arquivo vendendor"  # Nome singular
         verbose_name_plural = "Arquivo vendendores"  # Nome plural
     
     def __str__(self):
-        return f"Arquivo de {self.vendedor.username}"
+        return f"Arquivo de {self.vendedor.username} enviado em {self.uploaded_at.strftime('%d/%m/%Y %H:%M:%S')}"
     
 class CustomUser(AbstractUser):
     loja = models.ForeignKey(Loja, on_delete=models.CASCADE, null=True, blank=True)
