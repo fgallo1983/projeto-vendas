@@ -77,6 +77,12 @@ def relatorio_vendas(request):
     mes_atual = today.month
     ano_atual = today.year
     
+    # Lista de anos para o filtro (ajuste conforme necessário)
+    anos_disponiveis = list(range(ano_atual, 2031))  # De ano_atual até 2030
+    
+    # Gerar uma lista de meses de Janeiro a Dezembro para cada ano
+    meses_disponiveis = list(range(1, 13))  # Meses de 1 a 12 (Janeiro a Dezembro)
+    
     # Pega o mês e o ano da URL (caso existam)
     mes = request.GET.get('mes', None)
     ano = request.GET.get('ano', None)
@@ -121,6 +127,8 @@ def relatorio_vendas(request):
         'ano': ano,
         'mes_atual': mes_atual,
         'ano_atual': ano_atual,
+        'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
+        'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
     }
 
     return render(request, 'relatorio_vendas.html', context)
