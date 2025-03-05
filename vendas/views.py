@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import VendaForm
-from .models import Venda
+from .forms import VendaForm, RoteiroForm
+from .models import Venda, ArquivoVendedor
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .models import ArquivoVendedor
@@ -9,6 +9,7 @@ from django.db.models import Sum
 from django.contrib import messages
 import datetime
 from django.db.models import Min  # Importar para pegar o menor ID do grupo
+from django.utils.timezone import now
 
 
 def index(request):
@@ -144,7 +145,33 @@ def pagina_roteiros(request):
 
 @login_required
 def enviar_roteiro(request):
-    return render(request, 'enviar_roteiro.html')@login_required
+    if request.method == "POST":
+        form = RoteiroForm(request.POST, request.FILES)
+        if form.is_valid():
+            roteiro = form.save(commit=False)
+            roteiro.data_upload = now()  # Define a data de upload automaticamente
+            roteiro.save()
+            messages.success(request, "Arquivo enviado com sucesso!")
+            return redirect('enviar_roteiro')
+        else:
+            messages.error(request, "Falha ao enviar arquivo.")
+    else:
+        form = RoteiroForm()
+
+    roteiros = ArquivoVendedor.objects.all().order_by('-uploaded_at')  # Ordena por data decrescente
+
+    return render(request, 'enviar_roteiro.html', {'form': form, 'roteiros': roteiros})
+
+@login_required
+def excluir_roteiro(request, roteiro_id):
+    try:
+        roteiro = ArquivoVendedor.objects.get(id=roteiro_id)
+        roteiro.delete()
+        messages.success(request, "Arquivo excluído com sucesso!")
+    except ArquivoVendedor.DoesNotExist:
+        messages.error(request, "Arquivo não encontrado!")
+    
+    return redirect('enviar_roteiro')
 
 @login_required
 def selos(request):

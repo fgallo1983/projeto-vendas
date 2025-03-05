@@ -1,7 +1,50 @@
 {% extends 'base.html' %}
-{% block title %}Enviar Roteiro{% endblock %}
+{% load static %}
 
 {% block content %}
-<h1>Página de Enviar Roteiro</h1>
-<p>Esta funcionalidade será adicionada em breve.</p>
+<div class="form-container">
+    <h2>Enviar Roteiro</h2><br>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enviar</button>
+    </form>
+
+    <h3>Arquivos Enviados</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Vendedor</th>
+                <th>Nome do Arquivo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for roteiro in roteiros %}
+                <tr>
+                    <td>{{ roteiro.vendedor.get_full_name }}</td>
+                    <td><a href="{{ roteiro.arquivo.url }}" download>{{ roteiro.arquivo.name }}</a></td>
+                    <td><a href="{% url 'excluir_roteiro' roteiro.id %}" 
+                        onclick="return confirm('Tem certeza que deseja excluir este arquivo?')" 
+                        class="btn btn-danger">
+                        <img src="{% static 'images/btn-erase.png' %}" alt="Excluir" width="20">
+                     </a></td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum arquivo enviado ainda.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

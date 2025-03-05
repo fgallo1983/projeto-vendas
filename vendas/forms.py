@@ -1,5 +1,5 @@
 from django import forms
-from vendas.models import Venda, Produto, Loja
+from vendas.models import Venda, Produto, Loja, ArquivoVendedor
 import datetime
 
 class VendaForm(forms.ModelForm):
@@ -17,4 +17,9 @@ class VendaForm(forms.ModelForm):
         if commit:
             venda.save()
         return venda
+    
+class RoteiroForm(forms.ModelForm):
+    class Meta:
+        model = ArquivoVendedor
+        fields = ['vendedor', 'arquivo']
 

@@ -14,6 +14,7 @@ urlpatterns = [
     path('relatorio_vendas/', views.relatorio_vendas, name='relatorio_vendas'),
     path('roteiros/', views.pagina_roteiros, name='roteiros'),
     path('enviar_roteiro/', views.enviar_roteiro, name='enviar_roteiro'),
+    path('excluir_roteiro/<int:roteiro_id>/', views.excluir_roteiro, name='excluir_roteiro'),
     path('logout/', views.logout_view, name='logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
