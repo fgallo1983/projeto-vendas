@@ -1,7 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}Roteiros{% endblock %}
 
 {% block content %}
-<h1>Página de Roteiros</h1>
-<p>Esta página será implementada futuramente.</p>
+    <h2>Meus Roteiros</h2>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Arquivo</th>
+                <th>Data de Upload</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for roteiro in roteiros %}
+                <tr>
+                    <td><a href="{{ roteiro.arquivo.url }}" target="_blank">{{ roteiro.arquivo.name }}</a></td>
+                    <td>{{ roteiro.uploaded_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="2">Nenhum roteiro disponível.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

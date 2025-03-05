@@ -141,7 +141,9 @@ def logout_view(request):
 
 @login_required
 def pagina_roteiros(request):
-    return render(request, 'roteiros.html')
+    
+    roteiros = ArquivoVendedor.objects.filter(vendedor=request.user).order_by('-uploaded_at')
+    return render(request, 'roteiros.html', {'roteiros': roteiros})
 
 @login_required
 def enviar_roteiro(request):
