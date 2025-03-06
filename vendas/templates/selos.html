@@ -1,86 +1,72 @@
-{% extends 'base.html' %}
+
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
     <div class="form-container">
 
-        <form method="GET" action="{% url 'selos' %}">
+        <form method="GET">
             <label for="ano">Ano:</label>
             <select name="ano">
                 {% for ano in anos_disponiveis %}
-                    <option value="{{ ano }}" {% if ano_atual == ano %}selected{% endif %}>{{ ano }}</option>
+                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>{{ ano }}</option>
                 {% endfor %}
             </select>
         
             <label for="mes">Mês:</label>
             <select name="mes">
                 {% for mes in meses_disponiveis %}
-                    <option value="{{ mes }}" {% if mes_atual == mes %}selected{% endif %}>
-                        {% if mes == 1 %}Janeiro{% elif mes == 2 %}Fevereiro{% elif mes == 3 %}Março{% elif mes == 4 %}Abril{% elif mes == 5 %}Maio{% elif mes == 6 %}Junho{% elif mes == 7 %}Julho{% elif mes == 8 %}Agosto{% elif mes == 9 %}Setembro{% elif mes == 10 %}Outubro{% elif mes == 11 %}Novembro{% elif mes == 12 %}Dezembro{% endif %}
+                    <option value="{{ mes }}" {% if mes == mes_atual %}selected{% endif %}>
+                        {{ mes }}
                     </option>
                 {% endfor %}
             </select>
-        
+            
             <button type="submit">Filtrar</button>
         </form>
         
-        <h1>Selos</h1>
-
-        <!-- Exibe a mensagem de sucesso -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <h2>Relatório de Vendas - {{ request.user.first_name }}</h2>
-        <p>Mês atual: {{ mes_atual }}/{{ ano_atual }}</p>
-
         <table border="1">
             <thead>
                 <tr>
-                    <th>Data</th>
+                    <th>Dia</th>
                     <th>Semana</th>
-                    <th>Loja</th>
-                    <th>Peças Vendidas</th>
-                    <th>Ações</th> <!-- Nova coluna para os botões -->
+                    {% for produto in produtos %}
+                        <th>{{ produto.nome }}</th>
+                    {% endfor %}
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for venda in vendas %}
+                {% for dia, produtos_vendidos in vendas_por_dia.items %}
                     <tr>
-                        <td>{{ venda.data_venda }}</td>  <!-- Acessando o valor de data_venda -->
-                        <td>{{ venda.dia_semana }}</td>  <!-- Acessando o valor de dia_semana -->
-                        <td>{{ venda.loja }}</td>        <!-- Acessando o nome da loja -->
-                        <td>{{ venda.quantidade_vendida }}</td>  <!-- Acessando a quantidade vendida -->
+                        <td>{{ dia }}</td>
+                        <td>{{ dia|date:"l" }}</td>
+                        {% for produto in produtos %}
                         <td>
-                            {% if venda.id %}
-                                <a href="{% url 'editar_venda' venda.id %}">
-                                    <img src="{% static 'images/btn-edit.png' %}" alt="Editar" width="20">
-                                </a>
-                        
-                                <a href="{% url 'apagar_venda' venda.id %}" onclick="return confirm('Tem certeza que deseja excluir esta venda?');">
-                                    <img src="{% static 'images/btn-erase.png' %}" alt="Excluir" width="20">
-                                </a>
-                            {% else %}
-                                <span>Erro: ID não encontrado</span>
-                            {% endif %}
+                            {{ produtos_vendidos|dict_get:produto.id|default_if_none:"0" }}
                         </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4">Nenhuma venda registrada este mês.</td>
+                    {% endfor %}
+                        <td>{{ produtos_vendidos|sum_values }}</td>
                     </tr>
                 {% endfor %}
-            </tbody>
-            <tfoot>
+        
                 <tr>
-                    <td colspan="3"><strong>Total Vendido</strong></td>
-                    <td><strong>{{ total_vendido }}</strong></td>
+                    <td colspan="2"><strong>Total em Peças</strong></td>
+                    {% for produto in produtos %}
+                        <td><strong>{{ total_por_produto.produto.nome|default:"0" }}</strong></td>
+                    {% endfor %}
+                    <td><strong>{{ total_geral_pecas }}</strong></td>
                 </tr>
-            </tfoot>
+        
+                <tr>
+                    <td colspan="2"><strong>Valor em Reais</strong></td>
+                    {% for produto in produtos %}
+                        <td><strong>R$ {{ valor_por_produto.produto.nome|default:"0.00"|floatformat:2 }}</strong></td>
+                    {% endfor %}
+                    <td><strong>R$ {{ total_geral_valor|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
         </table>
+        
     </div>
 {% endblock %}

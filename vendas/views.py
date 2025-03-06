@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import VendaForm, RoteiroForm
-from .models import Venda, ArquivoVendedor
+from .models import Venda, ArquivoVendedor, Produto
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .models import ArquivoVendedor
@@ -10,6 +10,7 @@ from django.contrib import messages
 import datetime
 from django.db.models import Min  # Importar para pegar o menor ID do grupo
 from django.utils.timezone import now
+import calendar
 
 
 def index(request):
@@ -41,30 +42,34 @@ def home_adm(request):
 
 
 @login_required
-def registrar_venda(request, venda_id=None):
-    if request.method == 'POST':
+def registrar_venda(request):
+    if request.method == "POST":
         form = VendaForm(request.POST)
         if form.is_valid():
             venda = form.save(commit=False)
+            venda.vendedor = request.user  # Associa a venda ao vendedor logado
             
-            # Verifica se já existe uma venda com a mesma data para o vendedor
-            existe_venda = Venda.objects.filter(
-                vendedor=request.user,
-                data_venda=venda.data_venda
-            ).exclude(id=venda_id).exists()
+            # Verifica se já existe uma venda para o mesmo produto na mesma data
+            venda_existente = Venda.objects.filter(
+                produto=venda.produto, data_venda=venda.data_venda, vendedor=venda.vendedor
+            ).exists()
 
-            if existe_venda:
-                messages.error(request, "Você já cadastrou uma venda nessa data!")
+            if venda_existente:
+                messages.error(request, "Você já cadastrou este produto nesta data!")
             else:
-                venda.vendedor = request.user  # Associa a venda ao vendedor logado
+                venda.valor = venda.quantidade_vendida * venda.produto.valor  # Calcula o valor total
                 venda.save()
-                messages.success(request, "Venda cadastrada com sucesso!")  # Adiciona mensagem de sucesso
+                messages.success(request, "Venda registrada com sucesso!")
+            
+            return redirect('selos')
 
-            return redirect('selos')  # Redireciona para a lista de vendas
     else:
         form = VendaForm()
 
-    return render(request, 'registrar_venda.html', {'form': form})
+    vendas = Venda.objects.filter(vendedor=request.user).order_by('-data_venda')
+
+    return render(request, "registrar_venda.html", {"form": form, "vendas": vendas})
+
 
 
 # Verifica se o usuário é administrador
@@ -180,83 +185,49 @@ def selos(request):
     today = datetime.date.today()
     mes_atual = today.month
     ano_atual = today.year
-    
-    # Lista de anos para o filtro (ajuste conforme necessário)
-    anos_disponiveis = list(range(ano_atual, 2031))  # De ano_atual até 2030
-    
-    # Gerar uma lista de meses de Janeiro a Dezembro para cada ano
-    meses_disponiveis = list(range(1, 13))  # Meses de 1 a 12 (Janeiro a Dezembro)
-    
-    # Obter o ano e mês dos filtros ou usar o ano e mês atuais como padrão
-    ano = request.GET.get('ano', ano_atual)  # Pega o ano do filtro ou usa o ano atual
-    mes = request.GET.get('mes', mes_atual)  # Pega o mês do filtro ou usa o mês atual
 
-    # Validar e garantir que o ano e mês são válidos
-    try:
-        ano = int(ano)
-        mes = int(mes)
-    except ValueError:
-        ano = ano_atual
-        mes = mes_atual
-    
-    # Agrupar as vendas por dia e loja, somando a quantidade vendida e pegando um ID qualquer (o menor)
-    vendas = (
-        Venda.objects.filter(
-            vendedor=request.user,
-            data_venda__month=mes,  # Corrigido para usar o mês filtrado
-            data_venda__year=ano  # Corrigido para usar o ano filtrado
-        )
-        .values('data_venda', 'loja__nome')
-        .annotate(
-            total_vendido=Sum('quantidade_vendida'),
-            venda_id=Min('id')  # Pegamos o menor ID representativo do grupo
-        )
-        .order_by('data_venda')
-    )
+    # Obtém os filtros de mês e ano, caso selecionados
+    ano = int(request.GET.get('ano', ano_atual))
+    mes = int(request.GET.get('mes', mes_atual))
 
-    # Dicionário de tradução dos dias da semana
-    dias_da_semana = {
-        'Monday': 'Segunda-feira',
-        'Tuesday': 'Terça-feira',
-        'Wednesday': 'Quarta-feira',
-        'Thursday': 'Quinta-feira',
-        'Friday': 'Sexta-feira',
-        'Saturday': 'Sábado',
-        'Sunday': 'Domingo'
-    }
+    # Obtém todas as vendas do mês/ano filtrado
+    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
 
-    # Criar uma lista de vendas com as datas formatadas
-    vendas_formatadas = []
+    # Obtém todos os produtos cadastrados
+    produtos = Produto.objects.all()
+
+    # Dicionário para armazenar vendas por dia e produto
+    vendas_por_dia = {dia: {produto.id: 0 for produto in produtos} for dia in range(1, calendar.monthrange(ano, mes)[1] + 1)}
+
+    # Popula o dicionário com os valores vendidos
     for venda in vendas:
-        data_venda = venda['data_venda']  # Acessa o valor como dicionário
-        dia_semana = data_venda.strftime('%A')  # Retorna o nome do dia da semana em inglês
-        dia_semana_pt = dias_da_semana.get(dia_semana, dia_semana)  # Traduz para o português
+        vendas_por_dia[venda.data_venda.day][venda.produto.id] = venda.quantidade_vendida
+    
+    # Calcula os totais de peças e valores
+    total_por_produto = {produto.id: 0 for produto in produtos}
+    valor_por_produto = {produto.id: 0 for produto in produtos}
 
-        vendas_formatadas.append({
-            'id': venda['venda_id'],  # ✅ Pegando corretamente o ID representativo
-            'data_venda': data_venda.strftime('%d/%m/%Y'),  # ✅ Acessando data corretamente
-            'dia_semana': dia_semana_pt,
-            'loja': venda['loja__nome'],  # ✅ Acessando nome da loja corretamente
-            'quantidade_vendida': venda['total_vendido']  # ✅ Acessando total vendido corretamente
-        })
+    for venda in vendas:
+        total_por_produto[venda.produto.id] += venda.quantidade_vendida
+        valor_por_produto[venda.produto.id] = total_por_produto[venda.produto.id] * (venda.produto.valor or 0)
 
-    # Calcular o total vendido
-    total_vendido = sum(venda['quantidade_vendida'] for venda in vendas_formatadas)
+    total_geral_pecas = sum(total_por_produto.values())
+    total_geral_valor = sum(valor_por_produto.values())
 
-    # Passar o mês, ano e vendas ao template
-    context = {
-        'vendas': vendas_formatadas,
-        'mes_atual': mes,  # Passa o mês filtrado para o template
-        'ano_atual': ano,
-        'total_vendido': total_vendido,
-        'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
-        'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
-        'ano': ano,  # Passa o ano filtrado para o template
-        'mes': mes,  # Passa o mês filtrado para o template
-    }
+    return render(request, "selos.html", {
+        "ano_atual": ano_atual,
+        "mes_atual": mes_atual,
+        "anos_disponiveis": range(2020, ano_atual + 1),
+        "meses_disponiveis": range(1, 13),
+        "vendas_por_dia": vendas_por_dia,
+        "produtos": produtos,
+        "total_por_produto": total_por_produto,
+        "valor_por_produto": valor_por_produto,
+        "total_geral_pecas": total_geral_pecas,
+        "total_geral_valor": total_geral_valor,
+    })
 
-    return render(request, 'selos.html', context)
-
+    
 @login_required
 def editar_venda(request, venda_id):
     venda = get_object_or_404(Venda, id=venda_id, vendedor=request.user)

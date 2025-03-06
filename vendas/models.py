@@ -6,7 +6,8 @@ import datetime
 
 # Modelo Produto
 class Produto(models.Model):
-    nome = models.CharField(max_length=255) 
+    nome = models.CharField(max_length=255)
+    valor = models.FloatField()
 
     def __str__(self):
         return self.nome
@@ -22,12 +23,15 @@ class Loja(models.Model):
 # Modelo de Venda
 class Venda(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    loja = models.ForeignKey(Loja, on_delete=models.CASCADE)
-    vendedor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Aponta para CustomUser
-    quantidade_vendida = models.PositiveIntegerField()  # Quantidade vendida pelo vendedor
-    data_venda = models.DateField()  # Usamos uma única coluna para armazenar a data completa da venda
+    loja = models.ForeignKey('Loja', on_delete=models.CASCADE)
+    vendedor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    quantidade_vendida = models.PositiveIntegerField()
+    valor = models.FloatField()  
+    data_venda = models.DateField()
 
-    
+    class Meta:
+        unique_together = ('produto', 'vendedor', 'data_venda')  # Impede vendas duplicadas do mesmo produto na mesma data
+
     def __str__(self):
         return f"{self.produto.nome} - {self.quantidade_vendida} unidades - {self.data_venda}"
     

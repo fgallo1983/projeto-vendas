@@ -51,24 +51,25 @@ admin_site.register(CustomUser, CustomUserAdmin)
 # Classe personalizada para o modelo Venda
 class VendaAdmin(admin.ModelAdmin):
     # Exibe as colunas no admin
-    list_display = ('vendedor_nome_completo', 'loja', 'data_venda', 'quantidade_total_vendida')
+    list_display = ('vendedor_nome_completo', 'loja', 'produto_nome', 'data_venda', 'quantidade_total_vendida')
     
     # Filtros no admin
-    list_filter = ('vendedor', 'loja', 'data_venda')  # Filtra por vendedor, loja e data
+    list_filter = ('vendedor', 'loja', 'data_venda','produto')  # Filtra por vendedor, loja e data
     
     # Ordenação padrão (usando data_venda)
     ordering = ['data_venda']
     
-    # Função para calcular o total vendido no mês
+    # Removido a soma de quantidades (não é mais necessária)
     def quantidade_total_vendida(self, obj):
-        """Retorna a soma das quantidades vendidas por vendedor no mês"""
-        total = Venda.objects.filter(
-            vendedor=obj.vendedor,
-            data_venda__month=obj.data_venda.month,  # Filtra pelo mês da data
-            data_venda__year=obj.data_venda.year  # Filtra pelo ano da data
-        ).aggregate(total=Sum('quantidade_vendida'))['total']
-        
-        return total or 0  # Retorna 0 se não houver vendas
+        """Função removida, pois não queremos mais somar as quantidades"""
+        return obj.quantidade_vendida  # Exibe a quantidade diretamente sem somar
+
+    # Retorna o nome do produto relacionado à venda
+    def produto_nome(self, obj):
+        """Retorna o nome do produto relacionado à venda"""
+        return obj.produto.nome
+
+    produto_nome.short_description = 'Produto'
 
     def vendedor_nome_completo(self, obj):
         """Retorna o nome completo do vendedor"""
@@ -78,3 +79,5 @@ class VendaAdmin(admin.ModelAdmin):
 
 # Registra o modelo Venda com o admin personalizado
 admin_site.register(Venda, VendaAdmin)
+
+
