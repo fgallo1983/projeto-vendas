@@ -210,10 +210,31 @@ def selos(request):
 
     for venda in vendas:
         total_por_produto[venda.produto.id] += venda.quantidade_vendida
-        valor_por_produto[venda.produto.id] = total_por_produto[venda.produto.id] * (venda.produto.valor or 0)
 
+    # Soma total de peças vendidas no mês
     total_geral_pecas = sum(total_por_produto.values())
+
+    # Define o acréscimo com base no total de peças vendidas
+    if 501 <= total_geral_pecas <= 650:
+        acrescimo = 0.25
+    elif 651 <= total_geral_pecas <= 800:
+        acrescimo = 0.50
+    elif 801 <= total_geral_pecas <= 1000:
+        acrescimo = 0.75
+    elif total_geral_pecas > 1000:
+        acrescimo = 1.00
+    else:
+        acrescimo = 0  # Sem alteração se for <= 500
+
+    # Ajusta os valores dos produtos sem alterar o banco de dados
+    for produto in produtos:
+        preco_base = produto.valor or 0
+        preco_final = preco_base + acrescimo
+        valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final
+
+    # Soma total dos valores
     total_geral_valor = sum(valor_por_produto.values())
+    
     
     DIAS_SEMANA = {
         "Monday": "Segunda-feira",
@@ -233,7 +254,7 @@ def selos(request):
     return render(request, "selos.html", {
         "ano_atual": ano_atual,
         "mes_atual": mes_atual,
-        "anos_disponiveis": range(2020, ano_atual + 1),
+        "anos_disponiveis": list(range(ano_atual, 2031)),  # De ano_atual até 2030
         "meses_disponiveis": range(1, 13),
         "vendas_por_dia": vendas_por_dia,
         "produtos": produtos,
@@ -241,7 +262,9 @@ def selos(request):
         "valor_por_produto": valor_por_produto,
         "total_geral_pecas": total_geral_pecas,
         "total_geral_valor": total_geral_valor,
-        "dias_formatados": dias_formatados
+        "dias_formatados": dias_formatados,
+        "ano": ano,  
+        "mes": mes,  
     })
 
     

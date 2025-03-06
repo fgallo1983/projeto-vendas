@@ -6,13 +6,13 @@
 <div class="form-container">
 <h2>Relatório de Vendas</h2><br> 
 {% if messages %}
-<div class="messages">
-    {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-            {{ message }}
-        </div>
-    {% endfor %}
-</div>
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
 {% endif %}
 
         <form method="GET">
@@ -21,7 +21,7 @@
             <select name="mes">
                 {% for mes in meses_disponiveis %}
                     <option value="{{ mes }}" {% if mes == mes_atual %}selected{% endif %}>
-                        {{ mes }}
+                        {% if mes == 1 %}Janeiro{% elif mes == 2 %}Fevereiro{% elif mes == 3 %}Março{% elif mes == 4 %}Abril{% elif mes == 5 %}Maio{% elif mes == 6 %}Junho{% elif mes == 7 %}Julho{% elif mes == 8 %}Agosto{% elif mes == 9 %}Setembro{% elif mes == 10 %}Outubro{% elif mes == 11 %}Novembro{% elif mes == 12 %}Dezembro{% endif %}
                     </option>
                 {% endfor %}
             </select>
@@ -36,6 +36,7 @@
             <button type="submit">Filtrar</button>
         </form>
         
+        <h2>Promotora: {{ request.user.first_name }} - {{ mes }}/{{ ano }}</h2>
         <table border="1">
             <thead>
                 <tr>
@@ -79,6 +80,6 @@
             </tbody>
         </table>
         
-    </div>
+</div>
     
 {% endblock %}
