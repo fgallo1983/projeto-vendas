@@ -1,17 +1,21 @@
-
+{% extends 'base.html' %}
 {% load static %}
 {% load custom_filters %}
 
 {% block content %}
-    <div class="form-container">
+<div class="form-container">
+<h2>Relatório de Vendas</h2><br> 
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 
         <form method="GET">
-            <label for="ano">Ano:</label>
-            <select name="ano">
-                {% for ano in anos_disponiveis %}
-                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>{{ ano }}</option>
-                {% endfor %}
-            </select>
         
             <label for="mes">Mês:</label>
             <select name="mes">
@@ -19,6 +23,13 @@
                     <option value="{{ mes }}" {% if mes == mes_atual %}selected{% endif %}>
                         {{ mes }}
                     </option>
+                {% endfor %}
+            </select>
+
+            <label for="ano">Ano:</label>
+            <select name="ano">
+                {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>{{ ano }}</option>
                 {% endfor %}
             </select>
             
@@ -40,7 +51,7 @@
                 {% for dia, produtos_vendidos in vendas_por_dia.items %}
                     <tr>
                         <td>{{ dia }}</td>
-                        <td>{{ dia|date:"l" }}</td>
+                        <td>{{ dias_formatados|dict_get:dia }}</td>
                         {% for produto in produtos %}
                         <td>
                             {{ produtos_vendidos|dict_get:produto.id|default_if_none:"0" }}
@@ -53,7 +64,7 @@
                 <tr>
                     <td colspan="2"><strong>Total em Peças</strong></td>
                     {% for produto in produtos %}
-                        <td><strong>{{ total_por_produto.produto.nome|default:"0" }}</strong></td>
+                        <td><strong>{{ total_por_produto|dict_get:produto.id|default:"0" }}</strong></td>
                     {% endfor %}
                     <td><strong>{{ total_geral_pecas }}</strong></td>
                 </tr>
@@ -61,7 +72,7 @@
                 <tr>
                     <td colspan="2"><strong>Valor em Reais</strong></td>
                     {% for produto in produtos %}
-                        <td><strong>R$ {{ valor_por_produto.produto.nome|default:"0.00"|floatformat:2 }}</strong></td>
+                        <td><strong>R$ {{ valor_por_produto|dict_get:produto.id|default:"0.00"|floatformat:2 }}</strong></td>
                     {% endfor %}
                     <td><strong>R$ {{ total_geral_valor|floatformat:2 }}</strong></td>
                 </tr>
@@ -69,4 +80,5 @@
         </table>
         
     </div>
+    
 {% endblock %}

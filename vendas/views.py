@@ -207,12 +207,28 @@ def selos(request):
     total_por_produto = {produto.id: 0 for produto in produtos}
     valor_por_produto = {produto.id: 0 for produto in produtos}
 
+
     for venda in vendas:
         total_por_produto[venda.produto.id] += venda.quantidade_vendida
         valor_por_produto[venda.produto.id] = total_por_produto[venda.produto.id] * (venda.produto.valor or 0)
 
     total_geral_pecas = sum(total_por_produto.values())
     total_geral_valor = sum(valor_por_produto.values())
+    
+    DIAS_SEMANA = {
+        "Monday": "Segunda-feira",
+        "Tuesday": "Terça-feira",
+        "Wednesday": "Quarta-feira",
+        "Thursday": "Quinta-feira",
+        "Friday": "Sexta-feira",
+        "Saturday": "Sábado",
+        "Sunday": "Domingo",
+    }
+
+    dias_formatados = {
+        dia: DIAS_SEMANA.get(datetime.date(ano, mes, dia).strftime("%A"), "Desconhecido")
+        for dia in vendas_por_dia.keys()
+    }
 
     return render(request, "selos.html", {
         "ano_atual": ano_atual,
@@ -225,6 +241,7 @@ def selos(request):
         "valor_por_produto": valor_por_produto,
         "total_geral_pecas": total_geral_pecas,
         "total_geral_valor": total_geral_valor,
+        "dias_formatados": dias_formatados
     })
 
     
