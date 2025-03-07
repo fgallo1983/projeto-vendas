@@ -15,6 +15,16 @@
             <div class="wrap-login100">
                 <span class="login100-form-title">Bem vindo(a)!</span>
                 <img src="{% static 'images/logo_lokenzzi.jpg' %}" alt="Logo Lokenzzi">
+
+                   <!-- Exibe a mensagem de erro -->
+                   {% if messages %}
+                   <div class="alert alert-danger">
+                       {% for message in messages %}
+                           <p>{{ message }}</p>
+                       {% endfor %}
+                   </div>
+               {% endif %}
+               
                 <form method="POST">
                     {% csrf_token %}
                     <!-- Renderizando os campos individualmente com classes personalizadas -->

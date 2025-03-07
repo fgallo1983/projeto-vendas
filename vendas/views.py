@@ -27,6 +27,9 @@ def index(request):
             user = form.get_user()
             login(request, user)
             return redirect('home_adm' if user.is_staff else 'home_vendedor')
+        else:
+            # Adiciona a mensagem de erro
+            messages.error(request, 'Usuário ou senha inválidos.')
 
     else:
         form = AuthenticationForm()
