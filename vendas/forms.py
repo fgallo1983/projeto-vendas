@@ -22,4 +22,9 @@ class RoteiroForm(forms.ModelForm):
     class Meta:
         model = ArquivoVendedor
         fields = ['vendedor', 'arquivo']
+        
+class EditarVendasForm(forms.ModelForm):
+    class Meta:
+        model = Venda
+        fields = ['produto', 'quantidade_vendida']
 

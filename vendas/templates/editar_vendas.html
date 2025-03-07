@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Editar Vendas - {{ data }}</h2>
+
+    {% if vendas %}
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for venda in vendas %}
+                <div class="venda">
+                    <p><strong>Produto:</strong> {{ venda.produto.nome }}</p>
+                    <p><strong>Quantidade Vendida:</strong> {{ venda.quantidade_vendida }}</p>
+                    
+                    <!-- Cria um campo de input para edição da quantidade -->
+                    <label for="quantidade_vendida_{{ venda.id }}">Nova Quantidade:</label>
+                    <input type="number" id="quantidade_vendida_{{ venda.id }}" name="quantidade_vendida_{{ venda.id }}" value="{{ venda.quantidade_vendida }}" min="1">
+                    
+                    <!-- Adiciona um checkbox para excluir o produto -->
+                    <label for="excluir_{{ venda.id }}">Excluir Produto</label>
+                    <input type="checkbox" id="excluir_{{ venda.id }}" name="excluir_{{ venda.id }}">
+                </div>
+            {% endfor %}
+            
+            <button type="submit">Salvar Alterações</button>
+        </form>
+    {% else %}
+        <p>Nenhuma venda encontrada nesta data. <a href="{% url 'registrar_venda' %}">Cadastrar nova venda</a></p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import VendaForm, RoteiroForm
+from .forms import VendaForm, RoteiroForm, EditarVendasForm
 from .models import Venda, ArquivoVendedor, Produto, CustomUser
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
@@ -11,6 +11,7 @@ import datetime
 from django.db.models import Min  # Importar para pegar o menor ID do grupo
 from django.utils.timezone import now
 import calendar
+from datetime import date
 
 
 def index(request):
@@ -254,7 +255,10 @@ def selos(request, id_vendedor=None):
     # Ajusta os valores dos produtos sem alterar o banco de dados
     for produto in produtos:
         preco_base = produto.valor or 0
-        preco_final = preco_base + acrescimo
+        if preco_base <= 1.00:
+            preco_final = preco_base + acrescimo
+        else:
+            preco_final = preco_base
         valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final
 
     # Soma total dos valores
@@ -295,20 +299,42 @@ def selos(request, id_vendedor=None):
 
     
 @login_required
-def editar_venda(request, venda_id):
-    venda = get_object_or_404(Venda, id=venda_id, vendedor=request.user)
+def editar_vendas(request, data):
+    # Converte a data para o formato de data
+    data_venda = datetime.datetime.strptime(data, "%Y-%m-%d").date()
 
+    # Busca as vendas realizadas nesse dia para o vendedor logado
+    vendas = Venda.objects.filter(data_venda=data_venda, vendedor=request.user)
+
+    if not vendas.exists():
+        return redirect('registrar_venda')
+
+    # Criação do formulário
     if request.method == "POST":
-        form = VendaForm(request.POST, instance=venda)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Venda editada com sucesso!")
-            return redirect('selos')
+        for venda in vendas:
+            quantidade = request.POST.get(f'quantidade_vendida_{venda.id}')
+            if quantidade:
+                venda.quantidade_vendida = int(quantidade)
+                venda.save()
+
+            # Verifica se o usuário quer excluir o produto
+            excluir_produto = request.POST.get(f'excluir_{venda.id}')
+            if excluir_produto == 'on':  # Se o checkbox de excluir foi marcado
+                venda.delete()
+                messages.success(request, f"Produto {venda.produto.nome} excluído com sucesso!")
+
+        messages.success(request, "Vendas atualizadas com sucesso!")
+        return redirect('selos')
     else:
-        form = VendaForm(instance=venda)
+        # Caso não seja POST, cria o formulário com os dados existentes
+        form = EditarVendasForm()
 
-    return render(request, 'editar_venda.html', {'form': form, 'venda': venda})
-
+    # Passa as vendas do dia para o template
+    return render(request, 'editar_vendas.html', {
+        'form': form, 
+        'data': data,
+        'vendas': vendas  # Passa as vendas para o template
+    })
 
 
 @login_required

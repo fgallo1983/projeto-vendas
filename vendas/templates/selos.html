@@ -52,6 +52,9 @@
                         <th>{{ produto.nome }}</th>
                     {% endfor %}
                     <th>Total</th>
+                    {% if not request.user.is_staff %}
+                    <th>Editar</th>
+                {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -65,7 +68,21 @@
                         </td>
                     {% endfor %}
                         <td>{{ produtos_vendidos|sum_values }}</td>
+                    {% if not request.user.is_staff %}
+                        <td>
+                            {% with ano|stringformat:"d" as ano_formatado %}
+                            {% with mes|stringformat:"02d" as mes_formatado %}
+                            {% with dia|stringformat:"02d" as dia_formatado %}
+                                {% with ano_formatado|add:"-"|add:mes_formatado|add:"-"|add:dia_formatado as data_formatada %}
+                                    <a href="{% url 'editar_vendas' data_formatada %}">
+                                        Editar Vendas
+                                    </a>
+                                {% endwith %}
+                            {% endwith %}
+                            {% endwith %}
+                            {% endwith %}
                     </tr>
+                {% endif %}
                 {% endfor %}
         
                 <tr>
