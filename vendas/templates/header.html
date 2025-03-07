@@ -1,4 +1,5 @@
 {% load static %}
+<header class="no-print">
 <div class="header">
     <div class="header-left">
         <span>Bem-vindo, {{ request.user.first_name }}</span>
@@ -25,3 +26,4 @@
         <a href="{% url 'logout' %}">LOGOUT</a>
     </div>
 </div>
+</header>
