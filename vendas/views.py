@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import VendaForm, RoteiroForm
-from .models import Venda, ArquivoVendedor, Produto
+from .models import Venda, ArquivoVendedor, Produto, CustomUser
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .models import ArquivoVendedor
@@ -77,7 +77,7 @@ def is_admin(user):
     return user.is_staff  # Apenas administradores terão acesso
 
 @user_passes_test(is_admin, login_url='/')  # Redireciona para o login se não for admin
-def relatorio_vendas(request):
+def relatorio_vendas(request, id_vendedor=None):
     
     today = datetime.date.today()
     mes_atual = today.month
@@ -104,8 +104,10 @@ def relatorio_vendas(request):
         ano = None
     
     # Inicializa a queryset para vendas agrupadas por vendedor
-    vendas_agrupadas = Venda.objects.values('vendedor', 'vendedor__first_name', 'vendedor__last_name') \
-        .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por vendedor
+    vendas_agrupadas = Venda.objects.select_related('vendedor') \
+    .values('vendedor', 'vendedor__first_name', 'vendedor__last_name', 'vendedor__id') \
+    .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por vendedor
+        
     
     if ano:
         vendas_agrupadas = vendas_agrupadas.filter(data_venda__year=ano)
@@ -125,6 +127,15 @@ def relatorio_vendas(request):
         
     vendas_por_loja = vendas_por_loja.order_by('-total_vendido')  # Maior quantidade vendida primeiro
     
+        # Se for admin e não houver id_vendedor, mostra todas as vendas de todos os vendedores
+    if id_vendedor:  # Se o id_vendedor for fornecido, busca o vendedor específico
+        vendedor = get_object_or_404(CustomUser, id=id_vendedor)
+    else:  # Se não houver id_vendedor, mostra todas as vendas
+        vendedor = None  # Isso significa que estamos considerando todos os vendedores
+
+    # Filtra as vendas do vendedor selecionado
+    vendas = Venda.objects.filter(vendedor=vendedor)
+    
     # Passando os dados para o template
     context = {
         'vendas_agrupadas': vendas_agrupadas,
@@ -135,6 +146,7 @@ def relatorio_vendas(request):
         'ano_atual': ano_atual,
         'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
         'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
+        'vendedor': vendedor, 
     }
 
     return render(request, 'relatorio_vendas.html', context)
@@ -181,7 +193,20 @@ def excluir_roteiro(request, roteiro_id):
     return redirect('enviar_roteiro')
 
 @login_required
-def selos(request):
+def selos(request, id_vendedor=None):
+    # Se for admin e não houver id_vendedor, mostra todas as vendas de todos os vendedores
+    if id_vendedor:
+        if not request.user.is_staff:
+            # Se o usuário não for staff, redireciona para a página inicial ou página de erro
+            return redirect('home_vendedor')  # Ou página de erro, dependendo do seu fluxo
+
+        # Se for staff, pode acessar qualquer vendedor
+        vendedor = get_object_or_404(CustomUser, id=id_vendedor)
+    else:
+        # Caso não haja id_vendedor, é o próprio vendedor logado
+        vendedor = request.user
+    
+    
     today = datetime.date.today()
     mes_atual = today.month
     ano_atual = today.year
@@ -265,6 +290,7 @@ def selos(request):
         "dias_formatados": dias_formatados,
         "ano": ano,  
         "mes": mes,  
+        'vendedor': vendedor, 
     })
 
     

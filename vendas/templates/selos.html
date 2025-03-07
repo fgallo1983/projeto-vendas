@@ -14,7 +14,7 @@
         {% endfor %}
     </div>
 {% endif %}
-
+    <div class="form-inline">
         <form method="GET">
         
             <label for="mes">Mês:</label>
@@ -35,8 +35,14 @@
             
             <button type="submit">Filtrar</button>
         </form>
-        
-        <h2>Promotora: {{ request.user.first_name }} - {{ mes }}/{{ ano }}</h2>
+    </div>
+        <h2>Promotora: 
+            {% if vendedor %}
+            {{ vendedor.first_name }} {{ vendedor.last_name }}  <!-- Se o vendedor estiver presente -->
+        {% else %}
+            {{ request.user.first_name }}  <!-- Caso contrário, usa o nome do usuário logado -->
+        {% endif %}
+           - {{ mes }}/{{ ano }}</h2>
         <table border="1">
             <thead>
                 <tr>

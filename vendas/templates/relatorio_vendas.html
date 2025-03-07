@@ -41,15 +41,23 @@
         </tr>
     </thead>
     <tbody>
-        {% for venda in vendas_agrupadas %}
-            <tr>
-                <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
-                <td>{{ venda.vendedor__first_name }} {{ venda.vendedor__last_name }}</td>
-                <td>{{ venda.total_vendido }}</td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
-        {% endfor %}
+{% for venda in vendas_agrupadas %}
+    <tr>
+        <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
+        <td>
+            {% if venda.vendedor__id %}
+                <a href="{% url 'selos' id_vendedor=venda.vendedor__id %}">
+                    {{ venda.vendedor__first_name }} {{ venda.vendedor__last_name }}
+                </a>
+            {% else %}
+                <span>Vendedor não encontrado</span>
+            {% endif %}
+        </td>
+        <td>{{ venda.total_vendido }}</td>
+    </tr>
+{% empty %}
+    <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
+{% endfor %}  
     </tbody>
 </table>
 

@@ -9,6 +9,7 @@ urlpatterns = [
     path('home_adm/', views.home_adm, name='home_adm'),
     path('registrar_venda/', views.registrar_venda, name='registrar_venda'),
     path('selos/', views.selos, name='selos'),  # Página de selos
+    path('selos/<int:id_vendedor>/', views.selos, name='selos'),  # Para admin visualizar de outro vendedor
     path('editar-venda/<int:venda_id>/', views.editar_venda, name='editar_venda'),
     path('apagar-venda/<int:venda_id>/', views.apagar_venda, name='apagar_venda'),
     path('relatorio_vendas/', views.relatorio_vendas, name='relatorio_vendas'),
