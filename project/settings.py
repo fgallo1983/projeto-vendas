@@ -145,3 +145,12 @@ AUTH_USER_MODEL = 'vendas.CustomUser'
 # Defina os diretórios para arquivos de mídia
 MEDIA_URL = '/vendas/media/'
 MEDIA_ROOT = BASE_DIR / 'vendas/media'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'seu_email@gmail.com'  # Seu e-mail
+EMAIL_HOST_PASSWORD = 'sua_senha'  # Sua senha de e-mail (pode ser a senha de um aplicativo)
+DEFAULT_FROM_EMAIL = 'seu_email@gmail.com'
