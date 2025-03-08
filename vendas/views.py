@@ -28,7 +28,10 @@ def index(request):
             login(request, user)
             return redirect('home_adm' if user.is_staff else 'home_vendedor')
         else:
-            # Adiciona a mensagem de erro
+ # Exibindo todos os erros de validação
+            print("Formulário inválido:")
+            for field, errors in form.errors.items():
+                print(f"Erro no campo {field}: {errors}")
             messages.error(request, 'Usuário ou senha inválidos.')
 
     else:
@@ -75,38 +78,13 @@ def registrar_venda(request):
     return render(request, "registrar_venda.html", {"form": form, "vendas": vendas})
 
 
-
 # Verifica se o usuário é administrador
 def is_admin(user):
     return user.is_staff  # Apenas administradores terão acesso
 
-from django.db.models import Sum, F
-
-from django.db.models import F, Sum
-
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Sum, F
-import datetime
-from .models import Venda, Produto, CustomUser
-
-# Verifica se o usuário é administrador
-def is_admin(user):
-    return user.is_staff  # Apenas administradores terão acesso
-
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Sum, F
-import datetime
-from .models import Venda, Produto, CustomUser
-
-# Verifica se o usuário é administrador
-def is_admin(user):
-    return user.is_staff  # Apenas administradores terão acesso
 
 @login_required
 def relatorio_vendas(request):
-    # Obtém o mês e ano a partir dos filtros
     today = datetime.date.today()
     mes_atual = today.month
     ano_atual = today.year
@@ -114,17 +92,18 @@ def relatorio_vendas(request):
     ano = int(request.GET.get('ano', ano_atual))
     mes = int(request.GET.get('mes', mes_atual))
 
-    # Recupera todas as vendas do mês e ano filtrados
     vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
-
-    # Obtém todos os produtos cadastrados
     produtos = Produto.objects.all()
 
-    # Agrupar vendas por vendedor
+    # Agrupamento por vendedor
     vendas_por_vendedor = {}
+    vendas_por_loja = {}
 
     for venda in vendas:
         vendedor_id = venda.vendedor.id
+        loja_id = venda.loja.id  # Pega a loja diretamente da venda
+
+        # Inicializa os dados do vendedor
         if vendedor_id not in vendas_por_vendedor:
             vendas_por_vendedor[vendedor_id] = {
                 'vendedor': venda.vendedor,
@@ -134,68 +113,93 @@ def relatorio_vendas(request):
                 'total_geral_valor': 0,
             }
 
+        # Inicializa os dados da loja
+        if loja_id not in vendas_por_loja:
+            vendas_por_loja[loja_id] = {
+                'loja': venda.loja,
+                'total_por_produto': {produto.id: 0 for produto in produtos},
+                'valor_por_produto': {produto.id: 0 for produto in produtos},
+                'total_geral_pecas': 0,
+                'total_geral_valor': 0,
+            }
+
+        # Atualiza os totais por vendedor
         vendas_por_vendedor[vendedor_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
         vendas_por_vendedor[vendedor_id]['total_geral_pecas'] += venda.quantidade_vendida
 
-    # Define o acréscimo com base no total de peças vendidas
+        # Atualiza os totais por loja
+        vendas_por_loja[loja_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
+        vendas_por_loja[loja_id]['total_geral_pecas'] += venda.quantidade_vendida
+        
+    # Aplicação do acréscimo baseado no total de peças vendidas para vendedores
     for vendedor_id, dados in vendas_por_vendedor.items():
-        total_geral_pecas = dados['total_geral_pecas']
+        total_pecas = dados['total_geral_pecas']
 
-        if 501 <= total_geral_pecas <= 650:
+        if 501 <= total_pecas <= 650:
             acrescimo = 0.25
-        elif 651 <= total_geral_pecas <= 800:
+        elif 651 <= total_pecas <= 800:
             acrescimo = 0.50
-        elif 801 <= total_geral_pecas <= 1000:
+        elif 801 <= total_pecas <= 1000:
             acrescimo = 0.75
-        elif total_geral_pecas > 1000:
+        elif total_pecas > 1000:
             acrescimo = 1.00
         else:
-            acrescimo = 0  # Sem alteração se for <= 500
+            acrescimo = 0  # Sem acréscimo para <= 500 peças
 
-        # Ajusta os valores dos produtos e calcula o total para o vendedor
+        # Atualiza os valores dos produtos e calcula o total por vendedor
         for produto in produtos:
             preco_base = produto.valor or 0
-            if preco_base <= 1.00:
-                preco_final = preco_base + acrescimo
-            else:
-                preco_final = preco_base
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
             valor_total_produto = dados['total_por_produto'][produto.id] * preco_final
             dados['valor_por_produto'][produto.id] = valor_total_produto
             dados['total_geral_valor'] += valor_total_produto
 
-    # Calcula os totais gerais para todas as vendas
-    total_geral_pecas = sum([dados['total_geral_pecas'] for dados in vendas_por_vendedor.values()])
-    total_geral_valor = sum([dados['total_geral_valor'] for dados in vendas_por_vendedor.values()])
+    # Calcula os totais gerais
+    total_geral_pecas = sum(dados['total_geral_pecas'] for dados in vendas_por_vendedor.values())
+    total_geral_valor = sum(dados['total_geral_valor'] for dados in vendas_por_vendedor.values())
+    
+    # Aplicação do acréscimo baseado no total de peças vendidas para lojas
+    for loja_id, dados in vendas_por_loja.items():
+        total_pecas = dados['total_geral_pecas']
 
-    # Dicionário de dias da semana para formatação
-    DIAS_SEMANA = {
-        "Monday": "Segunda-feira",
-        "Tuesday": "Terça-feira",
-        "Wednesday": "Quarta-feira",
-        "Thursday": "Quinta-feira",
-        "Friday": "Sexta-feira",
-        "Saturday": "Sábado",
-        "Sunday": "Domingo",
-    }
+        if 501 <= total_pecas <= 650:
+            acrescimo = 0.25
+        elif 651 <= total_pecas <= 800:
+            acrescimo = 0.50
+        elif 801 <= total_pecas <= 1000:
+            acrescimo = 0.75
+        elif total_pecas > 1000:
+            acrescimo = 1.00
+        else:
+            acrescimo = 0  # Sem acréscimo para <= 500 peças
 
-    dias_formatados = {
-        dia: DIAS_SEMANA.get(datetime.date(ano, mes, dia).strftime("%A"), "Desconhecido")
-        for dia in range(1, calendar.monthrange(ano, mes)[1] + 1)
-    }
+        # Atualiza os valores dos produtos e calcula o total por vendedor
+        for produto in produtos:
+            preco_base = produto.valor or 0
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
+            valor_total_produto = dados['total_por_produto'][produto.id] * preco_final
+            dados['valor_por_produto'][produto.id] = valor_total_produto
+            dados['total_geral_valor'] += valor_total_produto
+
+    # Calcula os totais gerais
+    total_geral_pecas = sum(dados['total_geral_pecas'] for dados in vendas_por_loja.values())
+    total_geral_valor = sum(dados['total_geral_valor'] for dados in vendas_por_loja.values())
+
 
     return render(request, "relatorio_vendas.html", {
         "ano_atual": ano_atual,
         "mes_atual": mes_atual,
-        "anos_disponiveis": list(range(ano_atual, 2031)),  # De ano_atual até 2030
+        "anos_disponiveis": list(range(ano_atual, 2031)),
         "meses_disponiveis": range(1, 13),
         "vendas_por_vendedor": vendas_por_vendedor,
+        "vendas_por_loja": vendas_por_loja, 
         "produtos": produtos,
         "total_geral_pecas": total_geral_pecas,
         "total_geral_valor": total_geral_valor,
-        "dias_formatados": dias_formatados,
         "ano": ano,
         "mes": mes,
     })
+
 
 
 @login_required

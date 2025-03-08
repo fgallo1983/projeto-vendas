@@ -80,4 +80,4 @@ class VendaAdmin(admin.ModelAdmin):
 # Registra o modelo Venda com o admin personalizado
 admin_site.register(Venda, VendaAdmin)
 
-
+    

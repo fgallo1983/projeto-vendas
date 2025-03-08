@@ -85,16 +85,16 @@
         </tr>
     </thead>
     <tbody>
-        {% for venda in vendas_por_loja %}
-            <tr>
-                <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
-                <td>{{ venda.loja__nome }}</td>
-                <td>{{ venda.total_vendido }}</td>
-                <td>R$ {{ venda.total_valor|floatformat:2 }}</td> <!-- Novo campo -->
-            </tr>
-        {% empty %}
-            <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
-        {% endfor %}
+        {% for loja_id, venda in vendas_por_loja.items %}
+        <tr>
+            <td>{{ forloop.counter }}</td> <!-- Número da linha -->
+            <td>{{ venda.loja.nome }}</td> <!-- Nome da loja -->
+            <td>{{ venda.total_geral_pecas }}</td> <!-- Total de peças vendidas -->
+            <td><strong>R$ {{ venda.total_geral_valor|floatformat:2 }}</strong</td> <!-- Valor total formatado -->
+        </tr>
+    {% empty %}
+        <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
+    {% endfor %}
     </tbody>
 </table>
 </div>
