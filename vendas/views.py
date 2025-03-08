@@ -80,80 +80,123 @@ def registrar_venda(request):
 def is_admin(user):
     return user.is_staff  # Apenas administradores terão acesso
 
-@user_passes_test(is_admin, login_url='/')  # Redireciona para o login se não for admin
-def relatorio_vendas(request, id_vendedor=None):
-    
+from django.db.models import Sum, F
+
+from django.db.models import F, Sum
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Sum, F
+import datetime
+from .models import Venda, Produto, CustomUser
+
+# Verifica se o usuário é administrador
+def is_admin(user):
+    return user.is_staff  # Apenas administradores terão acesso
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Sum, F
+import datetime
+from .models import Venda, Produto, CustomUser
+
+# Verifica se o usuário é administrador
+def is_admin(user):
+    return user.is_staff  # Apenas administradores terão acesso
+
+@login_required
+def relatorio_vendas(request):
+    # Obtém o mês e ano a partir dos filtros
     today = datetime.date.today()
     mes_atual = today.month
     ano_atual = today.year
-    
-    # Lista de anos para o filtro (ajuste conforme necessário)
-    anos_disponiveis = list(range(ano_atual, 2031))  # De ano_atual até 2030
-    
-    # Gerar uma lista de meses de Janeiro a Dezembro para cada ano
-    meses_disponiveis = list(range(1, 13))  # Meses de 1 a 12 (Janeiro a Dezembro)
-    
-    # Pega o mês e o ano da URL (caso existam)
-    mes = request.GET.get('mes', None)
-    ano = request.GET.get('ano', None)
-    
-    # Caso os filtros sejam informados, converte para inteiros
-    try:
-        if mes:
-            mes = int(mes)
-        if ano:
-            ano = int(ano)
-    except ValueError:
-        mes = None
-        ano = None
-    
-    # Inicializa a queryset para vendas agrupadas por vendedor
-    vendas_agrupadas = Venda.objects.select_related('vendedor') \
-    .values('vendedor', 'vendedor__first_name', 'vendedor__last_name', 'vendedor__id') \
-    .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por vendedor
-        
-    
-    if ano:
-        vendas_agrupadas = vendas_agrupadas.filter(data_venda__year=ano)
-    if mes:
-        vendas_agrupadas = vendas_agrupadas.filter(data_venda__month=mes)
-        
-    vendas_agrupadas = vendas_agrupadas.order_by('-total_vendido')  # Maior quantidade vendida primeiro
-    
-    # Inicializa a queryset para vendas agrupadas por loja
-    vendas_por_loja = Venda.objects.values('loja', 'loja__nome') \
-        .annotate(total_vendido=Sum('quantidade_vendida'))  # Soma da quantidade vendida por loja
-    
-    if ano:
-        vendas_por_loja = vendas_por_loja.filter(data_venda__year=ano)
-    if mes:
-        vendas_por_loja = vendas_por_loja.filter(data_venda__month=mes)
-        
-    vendas_por_loja = vendas_por_loja.order_by('-total_vendido')  # Maior quantidade vendida primeiro
-    
-        # Se for admin e não houver id_vendedor, mostra todas as vendas de todos os vendedores
-    if id_vendedor:  # Se o id_vendedor for fornecido, busca o vendedor específico
-        vendedor = get_object_or_404(CustomUser, id=id_vendedor)
-    else:  # Se não houver id_vendedor, mostra todas as vendas
-        vendedor = None  # Isso significa que estamos considerando todos os vendedores
 
-    # Filtra as vendas do vendedor selecionado
-    vendas = Venda.objects.filter(vendedor=vendedor)
-    
-    # Passando os dados para o template
-    context = {
-        'vendas_agrupadas': vendas_agrupadas,
-        'vendas_por_loja': vendas_por_loja,
-        'mes': mes,
-        'ano': ano,
-        'mes_atual': mes_atual,
-        'ano_atual': ano_atual,
-        'anos_disponiveis': anos_disponiveis,  # Passa a lista de anos para o template
-        'meses_disponiveis': meses_disponiveis,  # Lista de meses de Janeiro a Dezembro
-        'vendedor': vendedor, 
+    ano = int(request.GET.get('ano', ano_atual))
+    mes = int(request.GET.get('mes', mes_atual))
+
+    # Recupera todas as vendas do mês e ano filtrados
+    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+
+    # Obtém todos os produtos cadastrados
+    produtos = Produto.objects.all()
+
+    # Agrupar vendas por vendedor
+    vendas_por_vendedor = {}
+
+    for venda in vendas:
+        vendedor_id = venda.vendedor.id
+        if vendedor_id not in vendas_por_vendedor:
+            vendas_por_vendedor[vendedor_id] = {
+                'vendedor': venda.vendedor,
+                'total_por_produto': {produto.id: 0 for produto in produtos},
+                'valor_por_produto': {produto.id: 0 for produto in produtos},
+                'total_geral_pecas': 0,
+                'total_geral_valor': 0,
+            }
+
+        vendas_por_vendedor[vendedor_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
+        vendas_por_vendedor[vendedor_id]['total_geral_pecas'] += venda.quantidade_vendida
+
+    # Define o acréscimo com base no total de peças vendidas
+    for vendedor_id, dados in vendas_por_vendedor.items():
+        total_geral_pecas = dados['total_geral_pecas']
+
+        if 501 <= total_geral_pecas <= 650:
+            acrescimo = 0.25
+        elif 651 <= total_geral_pecas <= 800:
+            acrescimo = 0.50
+        elif 801 <= total_geral_pecas <= 1000:
+            acrescimo = 0.75
+        elif total_geral_pecas > 1000:
+            acrescimo = 1.00
+        else:
+            acrescimo = 0  # Sem alteração se for <= 500
+
+        # Ajusta os valores dos produtos e calcula o total para o vendedor
+        for produto in produtos:
+            preco_base = produto.valor or 0
+            if preco_base <= 1.00:
+                preco_final = preco_base + acrescimo
+            else:
+                preco_final = preco_base
+            valor_total_produto = dados['total_por_produto'][produto.id] * preco_final
+            dados['valor_por_produto'][produto.id] = valor_total_produto
+            dados['total_geral_valor'] += valor_total_produto
+
+    # Calcula os totais gerais para todas as vendas
+    total_geral_pecas = sum([dados['total_geral_pecas'] for dados in vendas_por_vendedor.values()])
+    total_geral_valor = sum([dados['total_geral_valor'] for dados in vendas_por_vendedor.values()])
+
+    # Dicionário de dias da semana para formatação
+    DIAS_SEMANA = {
+        "Monday": "Segunda-feira",
+        "Tuesday": "Terça-feira",
+        "Wednesday": "Quarta-feira",
+        "Thursday": "Quinta-feira",
+        "Friday": "Sexta-feira",
+        "Saturday": "Sábado",
+        "Sunday": "Domingo",
     }
 
-    return render(request, 'relatorio_vendas.html', context)
+    dias_formatados = {
+        dia: DIAS_SEMANA.get(datetime.date(ano, mes, dia).strftime("%A"), "Desconhecido")
+        for dia in range(1, calendar.monthrange(ano, mes)[1] + 1)
+    }
+
+    return render(request, "relatorio_vendas.html", {
+        "ano_atual": ano_atual,
+        "mes_atual": mes_atual,
+        "anos_disponiveis": list(range(ano_atual, 2031)),  # De ano_atual até 2030
+        "meses_disponiveis": range(1, 13),
+        "vendas_por_vendedor": vendas_por_vendedor,
+        "produtos": produtos,
+        "total_geral_pecas": total_geral_pecas,
+        "total_geral_valor": total_geral_valor,
+        "dias_formatados": dias_formatados,
+        "ano": ano,
+        "mes": mes,
+    })
+
 
 @login_required
 def logout_view(request):
@@ -209,7 +252,6 @@ def selos(request, id_vendedor=None):
     else:
         # Caso não haja id_vendedor, é o próprio vendedor logado
         vendedor = request.user
-    
     
     today = datetime.date.today()
     mes_atual = today.month

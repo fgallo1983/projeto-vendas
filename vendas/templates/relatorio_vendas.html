@@ -9,6 +9,7 @@
 <h2>Relatório de Vendas</h2>
 
 <!-- Formulário de Filtros -->
+<div class="form-inline">
 <form method="get" action="">
     <label for="mes">Mês:</label>
     <select name="mes">
@@ -28,48 +29,59 @@
 
     <button type="submit">Filtrar</button>
 </form>
+</div>
+
+
 
 <!-- Tabela de Vendas por Vendedor -->
-<h3>Vendas por Vendedora</h3>
-<p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
+<div class="tabelas-container">
+    <div class="tabela">
+        <h3>Vendas por Vendedora</h3>
+        <p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
 <table border="1">
     <thead>
         <tr>
             <th>#</th>  <!-- Nova coluna para o número -->
             <th>Vendedora</th>
             <th>Total Vendido</th>
+            <th>Valor Total (R$)</th> <!-- Nova coluna -->
         </tr>
     </thead>
     <tbody>
-{% for venda in vendas_agrupadas %}
+{% for vendedor, dados in vendas_por_vendedor.items %}
     <tr>
         <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
         <td>
-            {% if venda.vendedor__id %}
-                <a href="{% url 'selos' id_vendedor=venda.vendedor__id %}">
-                    {{ venda.vendedor__first_name }} {{ venda.vendedor__last_name }}
+            {% if dados.vendedor.id %}
+                <a href="{% url 'selos' id_vendedor=dados.vendedor.id %}">
+                    {{ dados.vendedor.first_name }} {{ dados.vendedor.last_name }}
                 </a>
             {% else %}
                 <span>Vendedor não encontrado</span>
             {% endif %}
         </td>
-        <td>{{ venda.total_vendido }}</td>
+        <td>{{ dados.total_geral_pecas }}</td>
+        <td><strong>R$ {{ dados.total_geral_valor|floatformat:2 }}</strong></td>
     </tr>
 {% empty %}
     <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
 {% endfor %}  
     </tbody>
 </table>
+</div>
 
-<br>
+
+<div class="tabela">
 <!-- Tabela de Vendas por Loja -->
 <h3>Vendas por Loja</h3>
+<p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
 <table border="1">
     <thead>
         <tr>
             <th>#</th>  <!-- Nova coluna para o número -->
             <th>Loja</th>
             <th>Total Vendido</th>
+            <th>Valor Total (R$)</th> <!-- Nova coluna -->
         </tr>
     </thead>
     <tbody>
@@ -78,11 +90,14 @@
                 <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
                 <td>{{ venda.loja__nome }}</td>
                 <td>{{ venda.total_vendido }}</td>
+                <td>R$ {{ venda.total_valor|floatformat:2 }}</td> <!-- Novo campo -->
             </tr>
         {% empty %}
             <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+</div>
+</div>
 </div>
 {% endblock %}
