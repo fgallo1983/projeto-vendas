@@ -131,6 +131,11 @@ def relatorio_vendas(request):
         vendas_por_loja[loja_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
         vendas_por_loja[loja_id]['total_geral_pecas'] += venda.quantidade_vendida
         
+        # Ordenando as vendas por quantidade (mais vendido no topo)
+        vendas_por_vendedor = dict(sorted(vendas_por_vendedor.items(), key=lambda item: item[1]['total_geral_pecas'], reverse=True))
+        vendas_por_loja = dict(sorted(vendas_por_loja.items(), key=lambda item: item[1]['total_geral_pecas'], reverse=True))
+
+        
     # Aplicação do acréscimo baseado no total de peças vendidas para vendedores
     for vendedor_id, dados in vendas_por_vendedor.items():
         total_pecas = dados['total_geral_pecas']
@@ -266,7 +271,7 @@ def selos(request, id_vendedor=None):
     mes = int(request.GET.get('mes', mes_atual))
 
     # Obtém todas as vendas do mês/ano filtrado
-    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+    vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
 
     # Obtém todos os produtos cadastrados
     produtos = Produto.objects.all()
