@@ -60,14 +60,14 @@
             <tbody>
                 {% for dia, produtos_vendidos in vendas_por_dia.items %}
                     <tr>
-                        <td>{{ dia }}</td>
-                        <td>{{ dias_formatados|dict_get:dia }}</td>
+                        <td data-label="Dia">{{ dia }}</td>
+                        <td data-label="Semana">{{ dias_formatados|dict_get:dia }}</td>
                         {% for produto in produtos %}
-                        <td>
+                        <td data-label="{{ produto.nome }}">
                             {{ produtos_vendidos|dict_get:produto.id|default_if_none:"0" }}
                         </td>
                     {% endfor %}
-                        <td>{{ produtos_vendidos|sum_values }}</td>
+                        <td data-label="Total">{{ produtos_vendidos|sum_values }}</td>
                     {% if not request.user.is_staff %}
                         <td class="coluna-editar">
                             {% with ano|stringformat:"d" as ano_formatado %}
@@ -89,15 +89,15 @@
                 <tr>
                     <td colspan="2"><strong>Total em Peças</strong></td>
                     {% for produto in produtos %}
-                        <td><strong>{{ total_por_produto|dict_get:produto.id|default:"0" }}</strong></td>
+                    <td data-label="{{ produto.nome }}"><strong>{{ total_por_produto|dict_get:produto.id|default:"0" }}</strong></td>
                     {% endfor %}
-                    <td><strong>{{ total_geral_pecas }}</strong></td>
+                    <td data-label="Total geral"><strong>{{ total_geral_pecas }}</strong></td>
                 </tr>
         
                 <tr>
                     <td colspan="2"><strong>Valor em Reais</strong></td>
                     {% for produto in produtos %}
-                        <td><strong>R$ {{ valor_por_produto|dict_get:produto.id|default:"0.00"|floatformat:2 }}</strong></td>
+                    <td data-label="{{ produto.nome }}"><strong>R$ {{ valor_por_produto|dict_get:produto.id|default:"0.00"|floatformat:2 }}</strong></td>
                     {% endfor %}
                     <td><strong>R$ {{ total_geral_valor|floatformat:2 }}</strong></td>
                 </tr>

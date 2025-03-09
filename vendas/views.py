@@ -387,7 +387,8 @@ def editar_vendas(request, data):
     return render(request, 'editar_vendas.html', {
         'form': form, 
         'data': data,
-        'vendas': vendas  # Passa as vendas para o template
+        'vendas': vendas,  # Passa as vendas para o template
+        'data_venda' : data_venda
     })
 
 
