@@ -9,8 +9,17 @@ class VendaForm(forms.ModelForm):
 
     produto = forms.ModelChoiceField(queryset=Produto.objects.all(), label="Produto")
     quantidade_vendida = forms.IntegerField(min_value=1, label="Quantidade")
-    loja = forms.ModelChoiceField(queryset=Loja.objects.all(), label="Loja")
+    # loja = forms.ModelChoiceField(queryset=Loja.objects.all(), label="Loja")
     data_venda = forms.DateField(label="Data da Venda", widget=forms.DateInput(attrs={'type': 'date'}))  # Novo campo para a data completa
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)  # Pega o usuário do argumento
+        super().__init__(*args, **kwargs)
+
+        if user and not user.is_staff:  # Se for vendedora (não admin)
+            self.fields['loja'].queryset = user.lojas.all()  # Filtra apenas as lojas da vendedora
+        else:
+            self.fields['loja'].queryset = Loja.objects.all()  # Admins veem todas as lojas
     
     def save(self, commit=True):
         venda = super().save(commit=False)

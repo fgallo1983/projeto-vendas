@@ -51,7 +51,7 @@ def home_adm(request):
 @login_required
 def registrar_venda(request):
     if request.method == "POST":
-        form = VendaForm(request.POST)
+        form = VendaForm(request.POST, user=request.user)  # 🔹 Passa o usuário para filtrar as lojas
         if form.is_valid():
             venda = form.save(commit=False)
             venda.vendedor = request.user  # Associa a venda ao vendedor logado
@@ -71,7 +71,7 @@ def registrar_venda(request):
             return redirect('selos')
 
     else:
-        form = VendaForm()
+        form = VendaForm(user=request.user)  # 🔹 Passa o usuário também na criação inicial
 
     vendas = Venda.objects.filter(vendedor=request.user).order_by('-data_venda')
 
