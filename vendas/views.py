@@ -295,21 +295,25 @@ def selos(request, id_vendedor=None):
     total_geral_pecas = sum(total_por_produto.values())
 
     # Define o acréscimo com base no total de peças vendidas
-    if 501 <= total_geral_pecas <= 650:
+    if 301 <= total_geral_pecas <= 400:
         acrescimo = 0.25
-    elif 651 <= total_geral_pecas <= 800:
+    elif 401 <= total_geral_pecas <= 500:
         acrescimo = 0.50
-    elif 801 <= total_geral_pecas <= 1000:
+    elif 501 <= total_geral_pecas <= 650:
         acrescimo = 0.75
-    elif total_geral_pecas > 1000:
+    elif 651 <= total_geral_pecas <= 800:
         acrescimo = 1.00
+    elif 801 <= total_geral_pecas <= 1000:
+        acrescimo = 1.25
+    elif total_geral_pecas > 1001:
+        acrescimo = 1.50
     else:
-        acrescimo = 0  # Sem alteração se for <= 500
+        acrescimo = 0  # Sem alteração se for <= 300
 
     # Ajusta os valores dos produtos sem alterar o banco de dados
     for produto in produtos:
         preco_base = produto.valor or 0
-        if preco_base <= 1.00:
+        if preco_base <= 0.50:
             preco_final = preco_base + acrescimo
         else:
             preco_final = preco_base
