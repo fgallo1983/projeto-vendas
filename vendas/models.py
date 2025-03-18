@@ -50,7 +50,7 @@ class ArquivoVendedor(models.Model):
         return f"Arquivo de {self.vendedor.username} enviado em {self.uploaded_at.strftime('%d/%m/%Y %H:%M:%S')}"
     
 class CustomUser(AbstractUser):
-    loja = models.ForeignKey(Loja, on_delete=models.CASCADE, null=True, blank=True)
+    lojas = models.ManyToManyField(Loja, blank=True)  # Agora é um ManyToManyField
     
     class Meta:
         verbose_name = "Vendedora"  # Nome singular

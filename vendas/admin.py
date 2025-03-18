@@ -24,7 +24,7 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     verbose_name_plural = "Vendedoras"  # Altera o nome plural para "Vendedores"
     # Personalizando a exibição no admin
-    list_display = ('username', 'email', 'get_full_name', 'loja', 'is_staff', 'is_active')
+    list_display = ('username', 'email', 'get_full_name', 'is_staff', 'is_active')
 
     # Campos para pesquisa
     search_fields = ('username', 'email', 'first_name', 'last_name')
@@ -39,10 +39,10 @@ class CustomUserAdmin(UserAdmin):
     get_full_name.short_description = 'Vendedora'  # Define o título da coluna
 
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('loja',)}),  # Adiciona o campo "loja" no formulário
+        (None, {'fields': ('lojas',)}),  # Adiciona o campo "loja" no formulário
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('loja',)}),  # Adiciona o campo "loja" no formulário de criação
+        (None, {'fields': ('lojas',)}),  # Adiciona o campo "loja" no formulário de criação
     )
 
 # Registra o modelo CustomUser com o administrador personalizado
