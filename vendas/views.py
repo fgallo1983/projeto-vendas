@@ -138,18 +138,22 @@ def relatorio_vendas(request):
         
     # Aplicação do acréscimo baseado no total de peças vendidas para vendedores
     for vendedor_id, dados in vendas_por_vendedor.items():
-        total_pecas = dados['total_geral_pecas']
+        total_pecas = dados['total_geral_pecas']            
 
-        if 501 <= total_pecas <= 650:
+        if 301 <= total_pecas <= 400:
             acrescimo = 0.25
-        elif 651 <= total_pecas <= 800:
+        elif 401 <= total_pecas <= 500:
             acrescimo = 0.50
-        elif 801 <= total_pecas <= 1000:
+        elif 501 <= total_pecas <= 650:
             acrescimo = 0.75
-        elif total_pecas > 1000:
+        elif 651 <= total_pecas <= 800:
             acrescimo = 1.00
+        elif 801 <= total_pecas <= 1000:
+            acrescimo = 1.25
+        elif total_pecas > 1001:
+            acrescimo = 1.50
         else:
-            acrescimo = 0  # Sem acréscimo para <= 500 peças
+            acrescimo = 0  # Sem alteração se for <= 300
 
         # Atualiza os valores dos produtos e calcula o total por vendedor
         for produto in produtos:
@@ -167,16 +171,20 @@ def relatorio_vendas(request):
     for loja_id, dados in vendas_por_loja.items():
         total_pecas = dados['total_geral_pecas']
 
-        if 501 <= total_pecas <= 650:
+        if 301 <= total_pecas <= 400:
             acrescimo = 0.25
-        elif 651 <= total_pecas <= 800:
+        elif 401 <= total_pecas <= 500:
             acrescimo = 0.50
-        elif 801 <= total_pecas <= 1000:
+        elif 501 <= total_pecas <= 650:
             acrescimo = 0.75
-        elif total_pecas > 1000:
+        elif 651 <= total_pecas <= 800:
             acrescimo = 1.00
+        elif 801 <= total_pecas <= 1000:
+            acrescimo = 1.25
+        elif total_pecas > 1001:
+            acrescimo = 1.50
         else:
-            acrescimo = 0  # Sem acréscimo para <= 500 peças
+            acrescimo = 0  # Sem alteração se for <= 300
 
         # Atualiza os valores dos produtos e calcula o total por vendedor
         for produto in produtos:
