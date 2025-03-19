@@ -2,6 +2,7 @@ asgiref==3.8.1
 Brotli==1.1.0
 cffi==1.17.1
 cssselect2==0.8.0
+dj-database-url==2.3.0
 Django==5.1.6
 fonttools==4.56.0
 gunicorn==23.0.0
@@ -14,6 +15,7 @@ pyphen==0.17.2
 sqlparse==0.5.3
 tinycss2==1.4.0
 tinyhtml5==2.0.0
+typing_extensions==4.12.2
 tzdata==2025.1
 weasyprint==64.1
 webencodings==0.5.1
