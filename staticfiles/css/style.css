@@ -1,0 +1,690 @@
+/* Importação da fonte diretamente do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@200&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Mulish', sans-serif;
+    background: #f2f2f2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+    margin: 0;
+    padding: 0;
+    padding-top: 100px; /* Mesma altura do header */
+
+}
+
+a {
+    color: black;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: black;
+}
+
+a:hover {
+    color: black;
+    text-decoration: underline;
+}
+
+a:active {
+    color: black;
+}
+
+/* A imagem de fundo será aplicada ao container */
+.background-container {
+    background-image: url('/vendas/static/images/bg.jpg'); /* Caminho para a imagem */
+    background-size: cover; /* Faz a imagem cobrir toda a área disponível */
+    background-position: center center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* Evita a repetição da imagem */
+    width: 100%; /* Garante que a largura ocupe 100% da tela */
+    height: 100vh; /* Garante que a altura ocupe 100% da altura da tela */
+    position: absolute; /* Permite que o contêiner ocupe toda a tela */
+    top: 0;
+    left: 0;
+    z-index: -1; /* Faz com que a imagem fique atrás do conteúdo */
+    opacity: 0;
+    animation: fadeIn 2s ease-out forwards;  /* Efeito fade-in ao carregar */
+
+    /* Usando flexbox para centralizar o conteúdo */
+    display: flex;
+    justify-content: center; /* Alinha o conteúdo horizontalmente */
+    align-items: center; /* Alinha o conteúdo verticalmente */
+
+}
+
+/* Camada semi-transparente sobre a imagem de fundo */
+.background-container::before {
+    content: ""; /* Necessário para criar o pseudo-elemento */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.6); /* Cor branca semi-transparente */
+    z-index: -1; /* Garante que a sobreposição fique atrás do conteúdo */
+}
+
+/* Estilizando o conteúdo do texto */
+.text-content {
+    position: relative;
+    z-index: 1; /* Garante que o conteúdo ficará sobre a imagem */
+    text-align: center;
+    color: white;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semitransparente para o texto */
+    border-radius: 10px;
+    opacity: 0;
+    animation: fadeInText 3s ease-out forwards;  /* Fade-in para o texto */
+}
+
+/* Efeito de fade-in para o fundo */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Efeito de fade-in para o texto */
+@keyframes fadeInText {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Personalização para o texto (tamanho e alinhamento) */
+h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1.5rem;
+}
+
+.limiter {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; Ocupa toda a altura da tela */
+}
+
+.container-login100 {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    /* height: 100vh; */
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wrap-login100 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Garante que o conteúdo ocupe o máximo de espaço possível */
+    align-items: center;
+    height: 100%; /* Faz com que o wrap ocupe toda a altura do container */
+}
+
+.login100-form-title {
+    font-size: 30px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.wrap-input100 {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input100 {
+    width: 100%;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.focus-input100 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #9b165f;
+    border-radius: 5px;
+    background: transparent;
+    opacity: 0;
+}
+
+.input100:focus + .focus-input100 {
+    opacity: 1;
+}
+
+.container-login100-form-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login100-form-btn {
+    width: 100%;
+    background: #420a36;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.login100-form-btn:hover {
+    background: #b17aa8;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.txt1 {
+    color: #999;
+}
+
+.txt2 {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.txt2:hover {
+    text-decoration: underline;
+}
+
+.container-vendas {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 1200px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.container-vendas h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.vendas-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsivo, usa uma grade */
+    gap: 20px;
+    width: 100%; /* A área de vendas ocupa 100% da largura do container */
+}
+
+.venda-item {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.venda-item p {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.venda-item strong {
+    color: #420a36; /* Cor similar ao botão de login */
+}
+
+.venda-item .details {
+    display: flex;
+    flex-direction: column;
+}
+
+.venda-item .details p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.venda {
+    background: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Alinha à esquerda */
+    align-items:flex-start /* Mantém alinhado verticalmente */
+}
+
+.venda p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.venda input[type="number"],
+.venda input[type="checkbox"] {
+    margin-top: 5px;
+    padding: 5px;
+    font-size: 14px;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.venda label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between; /* Deixa a mensagem à esquerda e o menu centralizado */
+    align-items: center;
+    background: #ffffff;
+    color: rgb(0, 0, 0);
+    padding: 0 20px;
+    height: 100px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.header-left {
+    font-weight: bold;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 80px; /* Aumentei o espaçamento entre os links e o logo */
+    flex-grow: 1; /* Permite que o conteúdo ocupe o espaço necessário */
+}
+
+.header-center a {
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.header-center img {
+    height: 60px; /* Ajuste conforme necessário */
+}
+
+.header a:hover {
+    text-decoration: underline;
+}
+
+/* Estilo geral para o contêiner */
+.form-container {
+    /* max-width: 1000px; */
+    margin: 0 auto;
+    margin-top: 120px; /* Ajuste dependendo da altura do header */
+    padding: 20px;
+    background-color: #f8f9fa;  /* Cor de fundo suave */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra suave */
+}
+
+/* Estilo da tabela */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: 'Arial', sans-serif;
+    display: block;
+    max-height: 500px; /* Altura máxima para rolagem */
+    overflow-y: auto; /* Habilita rolagem vertical */
+}
+
+/* Estilo para as células da tabela */
+td, th {
+    padding: 16px;
+    text-align: left;
+}
+
+/* Linha alternada de fundo (cores diferentes para as linhas) */
+tr:nth-child(odd) {
+    background-color: #f1f1f1;
+}
+
+tr:nth-child(even) {
+    background-color: #cfd2d4;
+}
+
+/* Estilo do cabeçalho da tabela */
+th {
+    background-color: #d882cd;
+    color: white;
+    font-weight: bold;
+}
+
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Garante que o cabeçalho fique sobre os dados */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombrinha para destaque */
+}
+
+h2 {
+    text-align: center;
+}
+
+/* Estilo dos inputs dentro do formulário */
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus, button:focus {
+    border-color: #007bff;  /* Cor da borda ao focar no campo */
+    outline: none;  /* Remove o outline */
+}
+
+/* Botão de submit */
+button {
+    background-color: #420a36;  /* Cor do botão */
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #b17aa8;  /* Cor ao passar o mouse */
+}
+
+/* Estilo do formulário */
+form {
+    margin: 0;
+}
+
+/* Ajuste no campo de dados */
+label {
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: block;
+    font-weight: bold;
+}
+
+.messages {
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.alert {
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-inline {
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center;
+    gap: 10px; /* Espaçamento entre os elementos */
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.form-inline form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap; /* Impede a quebra de linha */
+    gap: 10px; /* Mantém o espaçamento entre os itens */
+}
+
+.form-inline select,
+.form-inline input,
+.form-inline button {
+    height: 40px; /* Ajuste para manter a altura uniforme */
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.form-inline label {
+    font-weight: bold;
+}
+
+.tabelas-container {
+    display: flex;           /* Mantém os elementos lado a lado */
+    gap: 20px;               /* Espaço entre as tabelas */
+    justify-content: center; /* Centraliza as tabelas na tela */
+    align-items: stretch;    /* Faz com que as tabelas fiquem com a mesma altura */
+    flex-wrap: wrap;         /* Permite que quebrem linha se necessário */
+}
+
+/* .tabela {
+    flex: 1;         
+    min-width: 400px; 
+    max-width: 45%;   
+    display: flex; 
+    flex-direction: column;/
+}
+ */
+
+
+@media (max-width: 600px) {
+    body {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead {
+        display: none; /* Esconde o cabeçalho */
+    }
+
+    tr {
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        padding: 10px;
+    }
+
+    td {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    td:last-child {
+        border-bottom: none;
+    }
+
+    td::before {
+        content: attr(data-label); /* Adiciona um rótulo antes do valor */
+        font-weight: bold;
+    }
+
+    
+}
+
+
+
+/* Para telas médias (tablets) */
+@media (max-width: 900px) {
+    .container {
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .header-center {
+        gap: 10px; /* Reduz o espaçamento entre os itens em telas menores */
+        flex-direction: column; /* Coloca os itens em coluna */
+    }
+
+    .header {
+        gap: 10px; /* Reduz o espaçamento entre os itens em telas menores */
+        flex-direction: column; /* Coloca os itens em coluna */
+        height: auto;
+        padding: 10px;
+        text-align: center;
+    }
+
+    body {
+        padding-top: 120px; /* Ajuste maior para headers maiores no mobile */
+    }
+
+    .container-login100 {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .login100-form-title {
+        font-size: 24px;
+    }
+
+    .input100 {
+        padding: 12px;
+    }
+    
+    .container-vendas {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .vendas-info {
+        grid-template-columns: 1fr;  /* Exibe uma coluna em telas menores */
+    }
+
+    .container-vendas h2 {
+        font-size: 24px;
+    }
+
+    .venda-item p {
+        font-size: 14px;
+    }
+}
+
+@media print {
+
+    @page {
+        size: landscape;
+        margin: 0;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 12pt;
+        margin: 0;
+        padding: 0;
+    }
+
+    .form-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    h2 {
+        font-size: 18px;
+        color: #333;
+    }
+
+    .no-print {
+        display: none;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        display: table !important; /* Garante que volte ao comportamento padrão */
+        max-height: none !important; /* Remove a altura máxima */
+        overflow: visible !important; /* Remove a rolagem */
+    }
+
+    thead th {
+        position: static !important; /* Remove o cabeçalho fixo na impressão */
+        box-shadow: none !important; /* Remove sombra para evitar distorções */
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    header, footer {
+        display: none;
+    }
+
+    /* Esconder o filtro com a classe .form-inline */
+    .form-inline {
+        display: none;
+    }
+
+
+    /* Esconder a coluna de editar (se você tiver algo assim em sua tabela) */
+    .coluna-editar {
+        display: none;
+    }
+
+    /* Ajustar a aparência para impressão (opcional) */
+    .content {
+        margin: 0;
+        padding: 0;
+    }
+}

@@ -4,12 +4,13 @@
 *.pyc
 __pycache__
 db.sqlite3
-static/
+# static/
 media/
 project/local_settings.py
 guicorn.txt
 nginx-http.txt
 SERVER.md
+staticfiles/
 
 # Backup files #
 *.bak

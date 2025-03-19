@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'vendas',
+    'whitenoise.runserver_nostatic',  
 ]
 
 MIDDLEWARE = [
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -121,7 +123,8 @@ USE_TZ = True
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Diretório onde os arquivos estáticos serão armazenados
-STATIC_URL = '/vendas/static/'
+# STATIC_URL = '/vendas/static/'
+STATIC_URL = '/static/'
 
 # Diretório onde os arquivos estáticos ficam durante o desenvolvimento
 STATICFILES_DIRS = [
@@ -143,8 +146,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'vendas.CustomUser'
 
 # Defina os diretórios para arquivos de mídia
-MEDIA_URL = '/vendas/media/'
-MEDIA_ROOT = BASE_DIR / 'vendas/media'
+# MEDIA_URL = '/vendas/media/'
+# MEDIA_ROOT = BASE_DIR / 'vendas/media'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
