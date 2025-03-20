@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,8 +129,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'vendas/static/',  # Altere conforme sua estrutura de pastas
 ]
 
-# Diretório de arquivos estáticos coletados (para produção)
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'collectstatic'
+# # Diretório de arquivos estáticos coletados (para produção)
+# STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'collectstatic'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 
