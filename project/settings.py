@@ -126,7 +126,7 @@ USE_TZ = True
 
 # # Diretório onde os arquivos estáticos serão armazenados
 # STATIC_URL = '/vendas/static/'
-STATIC_URL = '/static/'
+STATIC_URL = 'meuapp/static/'
 
 # Diretório onde os arquivos estáticos ficam durante o desenvolvimento
 STATICFILES_DIRS = [
