@@ -124,19 +124,19 @@ USE_TZ = True
 
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# # Diretório de arquivos estáticos coletados (para produção)
+# STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'collectstatic'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # # Diretório onde os arquivos estáticos serão armazenados
 # STATIC_URL = '/vendas/static/'
-STATIC_URL = 'meuapp/staticfiles/'
+STATIC_URL = '/static/'
 
 # Diretório onde os arquivos estáticos ficam durante o desenvolvimento
 STATICFILES_DIRS = [
     # BASE_DIR / 'vendas/static/',  # Altere conforme sua estrutura de pastas
-    os.path.join(BASE_DIR, 'meuapp/staticfiles'),  # Substitua 'meuapp' pelo nome do seu app
+    os.path.join(BASE_DIR, 'meuapp/static'),  # Substitua 'meuapp' pelo nome do seu app
 ]
-
-# # Diretório de arquivos estáticos coletados (para produção)
-# STATIC_ROOT = BASE_DIR / 'staticfiles'  # Isso será usado quando você rodar 'collectstatic'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 
