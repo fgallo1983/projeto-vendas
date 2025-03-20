@@ -40,7 +40,7 @@ a:active {
 
 /* A imagem de fundo será aplicada ao container */
 .background-container {
-    background-image: url('/vendas/static/images/bg.jpg'); /* Caminho para a imagem */
+    background-image: url('images/bg.jpg'); /* Caminho para a imagem */
     background-size: cover; /* Faz a imagem cobrir toda a área disponível */
     background-position: center center; /* Centraliza a imagem */
     background-repeat: no-repeat; /* Evita a repetição da imagem */
