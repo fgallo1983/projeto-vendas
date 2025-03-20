@@ -18,10 +18,13 @@ urlpatterns = [
     path('enviar_roteiro/', views.enviar_roteiro, name='enviar_roteiro'),
     path('excluir_roteiro/<int:roteiro_id>/', views.excluir_roteiro, name='excluir_roteiro'),
     path('logout/', views.logout_view, name='logout'),
-    path('esqueci-minha-senha/', auth_views.PasswordResetView.as_view(), name='password_reset'),
-    path('esqueci-minha-senha/success/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('esqueci-minha-senha/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('esqueci-minha-senha/completar/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('esqueci-minha-senha/', auth_views.PasswordResetView.as_view(template_name="registration/password_reset_form.html"), name='password_reset'),
+    path('esqueci-minha-senha/success/', auth_views.PasswordResetDoneView.as_view(template_name="registration/password_reset_done.html"), 
+         name='password_reset_done'),
+    path('esqueci-minha-senha/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), 
+         name='password_reset_confirm'),
+   path('esqueci-minha-senha/completar/', auth_views.PasswordResetCompleteView.as_view(template_name="registration/password_reset_complete.html"), 
+        name='password_reset_complete'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
