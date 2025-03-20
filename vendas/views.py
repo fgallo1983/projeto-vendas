@@ -12,6 +12,8 @@ from django.db.models import Min  # Importar para pegar o menor ID do grupo
 from django.utils.timezone import now
 import calendar
 from datetime import date
+from django.contrib.auth.views import PasswordResetView
+from django.urls import reverse_lazy
 
 
 def index(request):
@@ -414,3 +416,7 @@ def apagar_venda(request, venda_id):
         return redirect('selos')
 
     return render(request, 'confirmar_exclusao.html', {'venda': venda})
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = "registration/password_reset_form.html"
+    success_url = reverse_lazy("password_reset_done")
