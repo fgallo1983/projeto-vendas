@@ -1,3 +1,4 @@
+{% if user.is_authenticated %}
 {% load static %}
 <header class="no-print">
 <div class="header">
@@ -27,3 +28,4 @@
     </div>
 </div>
 </header>
+{% endif %}
