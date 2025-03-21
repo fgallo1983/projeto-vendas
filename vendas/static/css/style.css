@@ -529,7 +529,9 @@ label {
 
 /* Estilos específicos para a tabela do template "Roteiros" */
 .roteiros-container table {
-    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+    padding-top: 120px; /* Ajuste para evitar sobreposição com o header */
     border-collapse: collapse;
     min-width: 600px; /* Garante que a tabela tenha um tamanho mínimo */
 }
@@ -651,6 +653,7 @@ label {
         min-width: 100%;
         display: block;
         white-space: nowrap;
+        padding-top: 140px; /* Pode ser ajustado conforme necessário */
     }
 }
 
