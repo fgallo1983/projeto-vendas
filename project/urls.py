@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin_site.urls),  # Usando o admin personalizado
     path('accounts/', include('django.contrib.auth.urls')),  # URLs de login e logout padrão do Django
     path('', views.index, name='index'),  # Página inicial com o formulário de login
-    path('vendas/', include('vendas.urls')), 
+    path('', include('vendas.urls')),  # Inclui as URLs do app "vendas"
     path('relatorio-vendas/', views.relatorio_vendas, name='relatorio_vendas'),
 
 ]
