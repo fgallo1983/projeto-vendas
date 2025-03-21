@@ -516,6 +516,31 @@ label {
  */
 
 
+ .roteiros-container {
+    max-width: 100%;
+    padding: 20px;
+}
+
+/* Cria um container com rolagem apenas para essa tabela */
+.tabela-scroll {
+    overflow-x: auto; /* Permite rolagem horizontal */
+    width: 100%;
+}
+
+/* Estilos específicos para a tabela do template "Roteiros" */
+.roteiros-container table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Garante que a tabela tenha um tamanho mínimo */
+}
+
+.roteiros-container th, 
+.roteiros-container td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
 @media (max-width: 600px) {
     body {
         font-size: 14px;
@@ -616,6 +641,16 @@ label {
 
     .venda-item p {
         font-size: 14px;
+    }
+
+    .tabela-scroll {
+        overflow-x: auto;
+    }
+    
+    .roteiros-container table {
+        min-width: 100%;
+        display: block;
+        white-space: nowrap;
     }
 }
 

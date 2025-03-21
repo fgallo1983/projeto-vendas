@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="form-container">
+<div class="roteiros-container">
     <h2>Meus Roteiros</h2>
 
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Arquivo</th>
-                <th>Data de Upload</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for roteiro in roteiros %}
+    <div class="tabela-scroll">
+        <table border="1">
+            <thead>
                 <tr>
-                    <td><a href="{{ roteiro.arquivo.url }}" target="_blank">{{ roteiro.arquivo.name }}</a></td>
-                    <td>{{ roteiro.uploaded_at|date:"d/m/Y H:i" }}</td>
+                    <th>Arquivo</th>
+                    <th>Data de Upload</th>
                 </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="2">Nenhum roteiro disponível.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for roteiro in roteiros %}
+                    <tr>
+                        <td><a href="{{ roteiro.arquivo.url }}" target="_blank">{{ roteiro.arquivo.name }}</a></td>
+                        <td>{{ roteiro.uploaded_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2">Nenhum roteiro disponível.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
