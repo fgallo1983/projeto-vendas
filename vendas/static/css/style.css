@@ -654,7 +654,12 @@ label {
         white-space: nowrap;
         padding-top: 200px; /* Pode ser ajustado conforme necessário */
     }
+
+    .roteiros-container {
+        padding-top: 140px; /* Pode ser ajustado conforme necessário */
+    }
 }
+
 
 @media print {
 
