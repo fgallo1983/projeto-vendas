@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'vendas',
+    'django_extensions',
+
 ]
 
 MIDDLEWARE = [
@@ -59,7 +61,9 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        "DIRS": [BASE_DIR / "vendas/templates"],  
+        "DIRS": [
+            "/home/lokenzzi/meuapp/vendas/templates",
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -154,10 +158,10 @@ MEDIA_URL = '/vendas/media/'
 MEDIA_ROOT = BASE_DIR / 'vendas/media'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'seu_email@gmail.com'  # Seu e-mail
-EMAIL_HOST_PASSWORD = 'sua_senha'  # Sua senha de e-mail (pode ser a senha de um aplicativo)
-DEFAULT_FROM_EMAIL = 'seu_email@gmail.com'
+EMAIL_HOST_USER = 'atendimentolokenzzi5@gmail.com'  # Seu e-mail
+EMAIL_HOST_PASSWORD = 'wbup tfzh ozld rkei'  # Sua senha de e-mail (pode ser a senha de um aplicativo)
+DEFAULT_FROM_EMAIL = 'atendimentolokenzzi5@gmail.com'
