@@ -40,7 +40,7 @@ a:active {
 
 /* A imagem de fundo será aplicada ao container */
 .background-container {
-    background-image: url('images/bg.jpg'); /* Caminho para a imagem */
+    background-image: url('/static/images/bg.jpg'); /* Caminho para a imagem */
     background-size: cover; /* Faz a imagem cobrir toda a área disponível */
     background-position: center center; /* Centraliza a imagem */
     background-repeat: no-repeat; /* Evita a repetição da imagem */
@@ -507,40 +507,14 @@ label {
 }
 
 /* .tabela {
-    flex: 1;         
-    min-width: 400px; 
-    max-width: 45%;   
-    display: flex; 
+    flex: 1;
+    min-width: 400px;
+    max-width: 45%;
+    display: flex;
     flex-direction: column;/
 }
  */
 
-
- .roteiros-container {
-    max-width: 100%;
-    padding: 20px;
-    padding-top: 200px; /* Ajuste para evitar sobreposição com o header */
-}
-
-/* Cria um container com rolagem apenas para essa tabela */
-.tabela-scroll {
-    overflow-x: auto; /* Permite rolagem horizontal */
-    width: 100%;
-}
-
-/* Estilos específicos para a tabela do template "Roteiros" */
-.roteiros-container table {
-    max-width: 100%;
-    border-collapse: collapse;
-    min-width: 600px; /* Garante que a tabela tenha um tamanho mínimo */
-}
-
-.roteiros-container th, 
-.roteiros-container td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #ddd;
-}
 
 @media (max-width: 600px) {
     body {
@@ -583,7 +557,21 @@ label {
         font-weight: bold;
     }
 
-    
+    .roteiros-container {
+        margin-top: 150px; /* Evita sobreposição com o header */
+    }
+
+    .tabela-scroll {
+        display: block; /* Permite que a tabela role horizontalmente */
+        white-space: nowrap; /* Impede quebra de palavras nas células */
+        max-width: 100%;
+    }
+
+    .tabela-scroll table {
+        min-width: 300px; /* Define um tamanho mínimo para evitar compressão excessiva */
+    }
+
+
 }
 
 
@@ -626,7 +614,7 @@ label {
     .input100 {
         padding: 12px;
     }
-    
+
     .container-vendas {
         width: 100%;
         padding: 20px;
@@ -644,22 +632,30 @@ label {
         font-size: 14px;
     }
 
-    .tabela-scroll {
-        overflow-x: auto;
-    }
-    
-    .roteiros-container table {
-        min-width: 100%;
-        display: block;
-        white-space: nowrap;
-        padding-top: 200px; /* Pode ser ajustado conforme necessário */
-    }
-
     .roteiros-container {
-        padding-top: 140px; /* Pode ser ajustado conforme necessário */
+        margin-top: 150px; /* Evita sobreposição com o header */
     }
-}
 
+    .tabela-scroll {
+        display: block; /* Permite que a tabela role horizontalmente */
+        white-space: nowrap; /* Impede quebra de palavras nas células */
+        max-width: 100%;
+    }
+
+    .tabela-scroll table {
+        width: 350px; /* Define um tamanho mínimo para evitar compressão excessiva */
+        display: block; /* Permite que a tabela role horizontalmente */
+        overflow-x: auto; /* Garante rolagem horizontal quando necessário */
+    }
+
+
+    .tabela-scroll th, .tabela-scroll td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+}
 
 @media print {
 
