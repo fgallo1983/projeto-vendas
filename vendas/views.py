@@ -279,6 +279,7 @@ def selos(request, id_vendedor=None):
     # Obtém os filtros de mês e ano, caso selecionados
     ano = int(request.GET.get('ano', ano_atual))
     mes = int(request.GET.get('mes', mes_atual))
+    dia = request.GET.get('dia')  # Dia pode ser opcional
 
     # Obtém todas as vendas do mês/ano filtrado
     vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)

@@ -17,6 +17,10 @@
     <div class="form-inline">
         <form method="GET">
         
+            <label for="dia">Dia:</label>
+            <input type="number" name="dia" value="{{ request.GET.dia|default:'' }}" min="1" max="31">
+
+
             <label for="mes">Mês:</label>
             <select name="mes">
                 {% for mes in meses_disponiveis %}
