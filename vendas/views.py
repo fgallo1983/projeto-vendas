@@ -283,12 +283,19 @@ def selos(request, id_vendedor=None):
 
     # Obtém todas as vendas do mês/ano filtrado
     vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
+    
+        # Se o dia for informado, aplica o filtro também
+    if dia:
+        vendas = vendas.filter(data_venda__day=int(dia))
 
     # Obtém todos os produtos cadastrados
     produtos = Produto.objects.all()
 
     # Dicionário para armazenar vendas por dia e produto
-    vendas_por_dia = {dia: {produto.id: 0 for produto in produtos} for dia in range(1, calendar.monthrange(ano, mes)[1] + 1)}
+    if dia:
+        vendas_por_dia = {int(dia): {produto.id: 0 for produto in produtos}}
+    else:
+        vendas_por_dia = {dia: {produto.id: 0 for produto in produtos} for dia in range(1, calendar.monthrange(ano, mes)[1] + 1)}
 
     # Popula o dicionário com os valores vendidos
     for venda in vendas:
@@ -344,10 +351,15 @@ def selos(request, id_vendedor=None):
         "Sunday": "Domingo",
     }
 
-    dias_formatados = {
-        dia: DIAS_SEMANA.get(datetime.date(ano, mes, dia).strftime("%A"), "Desconhecido")
-        for dia in vendas_por_dia.keys()
-    }
+    if dia:
+        dias_formatados = {
+        int(dia): DIAS_SEMANA.get(datetime.date(ano, mes, int(dia)).strftime("%A"), "Desconhecido")
+        }
+    else:
+        dias_formatados = {
+            dia: DIAS_SEMANA.get(datetime.date(ano, mes, dia).strftime("%A"), "Desconhecido")
+            for dia in vendas_por_dia.keys()
+        }
 
     return render(request, "selos.html", {
         "ano_atual": ano_atual,
