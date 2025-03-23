@@ -420,3 +420,6 @@ def apagar_venda(request, venda_id):
 class CustomPasswordResetView(PasswordResetView):
     template_name = "registration/password_reset_form.html"
     success_url = reverse_lazy("password_reset_done")
+    
+def error_404_view(request, exception):
+    return render(request, '404.html', status=404)
