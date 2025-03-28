@@ -384,10 +384,14 @@ def editar_vendas(request, data):
     # Converte a data para o formato de data
     data_venda = datetime.datetime.strptime(data, "%Y-%m-%d").date()
 
-    # Busca as vendas realizadas nesse dia para o vendedor logado
-    vendas = Venda.objects.filter(data_venda=data_venda, vendedor=request.user)
+    # Se for admin, pode editar todas as vendas desse dia. Senão, edita apenas as suas.
+    if request.user.is_superuser:
+        vendas = Venda.objects.filter(data_venda=data_venda)
+    else:
+        vendas = Venda.objects.filter(data_venda=data_venda, vendedor=request.user)
 
     if not vendas.exists():
+        messages.error(request, "Nenhuma venda encontrada para essa data.")
         return redirect('registrar_venda')
 
     # Criação do formulário
