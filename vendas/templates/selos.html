@@ -56,9 +56,7 @@
                         <th>{{ produto.nome }}</th>
                     {% endfor %}
                     <th>Total</th>
-                    {% if not request.user.is_staff %}
                     <th class="coluna-editar">Editar</th>
-                {% endif %} 
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +70,6 @@
                         </td>
                     {% endfor %}
                         <td data-label="Total">{{ produtos_vendidos|sum_values }}</td>
-                    {% if not request.user.is_staff %}
                         <td class="coluna-editar">
                             {% with ano|stringformat:"d" as ano_formatado %}
                             {% with mes|stringformat:"02d" as mes_formatado %}
@@ -87,7 +84,6 @@
                             {% endwith %}
                         </td>
                     </tr>
-                {% endif %}
                 {% endfor %}
         
                 <tr>
