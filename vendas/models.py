@@ -58,3 +58,15 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"  # Retorna o nome completo do usuário
+    
+class MetaAcrescimo(models.Model):
+    min_pecas = models.PositiveIntegerField("Mínimo de Peças")
+    max_pecas = models.PositiveIntegerField("Máximo de Peças", blank=True, null=True)  # Pode ser null para o último intervalo
+    acrescimo = models.FloatField("Valor do Acréscimo")
+
+    class Meta:
+        ordering = ["min_pecas"]  # Garante que os intervalos fiquem ordenados corretamente
+
+    def __str__(self):
+        max_pecas_display = f"até {self.max_pecas}" if self.max_pecas else "+"
+        return f"{self.min_pecas} {max_pecas_display} peças → +R$ {self.acrescimo:.2f}"
