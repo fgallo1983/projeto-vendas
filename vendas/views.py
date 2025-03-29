@@ -8,7 +8,7 @@ from .models import ArquivoVendedor
 from django.db.models import Sum
 from django.contrib import messages
 import datetime
-from django.db.models import Min  # Importar para pegar o menor ID do grupo
+from django.db.models import Min, Max  # Importar para pegar o menor ID do grupo
 from django.utils.timezone import now
 import calendar
 from datetime import date
@@ -184,6 +184,8 @@ def relatorio_vendas(request):
     # Calcula os totais gerais para lojas
     total_geral_pecas_lojas = sum(dados['total_geral_pecas'] for dados in vendas_por_loja.values())
     total_geral_valor_lojas = sum(dados['total_geral_valor'] for dados in vendas_por_loja.values())
+    
+    meta_maxima = MetaAcrescimo.objects.aggregate(max_meta=Max("min_pecas"))["max_meta"] or 0
 
     return render(request, "relatorio_vendas.html", {
         "ano_atual": ano_atual,
@@ -199,6 +201,7 @@ def relatorio_vendas(request):
         "total_geral_valor_lojas": total_geral_valor_lojas,
         "ano": ano,
         "mes": mes,
+        "meta_maxima": meta_maxima,
     })
 
 
@@ -336,6 +339,12 @@ def selos(request, id_vendedor=None):
             d: DIAS_SEMANA.get(datetime.date(ano, mes, d).strftime("%A"), "Desconhecido")
             for d in vendas_por_dia.keys()
         }
+        
+    # Calculando a porcentagem de vendas em relação à meta
+    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+    porcentagem_vendas = round((total_geral_pecas / meta_maxima) * 100, 2) if meta_maxima else 0
+
+    porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
 
     return render(
         request,
@@ -355,6 +364,7 @@ def selos(request, id_vendedor=None):
             "ano": ano,
             "mes": mes,
             "vendedor": vendedor,
+            "porcentagem_vendas": porcentagem_vendas,  
         },
     )
 

@@ -100,4 +100,60 @@
 </div>
 </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="graficoVendas" width="400" height="200"></canvas>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById("graficoVendas").getContext("2d");
+
+        var nomesPromotoras = [
+            {% for vendedor_id, dados in vendas_por_vendedor.items %}
+                "{{ dados.vendedor.username }}",
+            {% endfor %}
+        ];
+
+        var vendasPromotoras = [
+            {% for vendedor_id, dados in vendas_por_vendedor.items %}
+                {{ dados.total_geral_pecas }},
+            {% endfor %}
+        ];
+
+        var metaMaxima = {{ meta_maxima }};
+
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: nomesPromotoras,
+                datasets: [
+                    {
+                        label: "Vendas",
+                        data: vendasPromotoras,
+                        backgroundColor: "rgba(66, 10, 54, 0.5)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Meta",
+                        data: Array(nomesPromotoras.length).fill(metaMaxima),
+                        type: "line",
+                        borderColor: "red",
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

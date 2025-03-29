@@ -47,6 +47,75 @@
             {{ request.user.first_name }}  <!-- Caso contrário, usa o nome do usuário logado -->
         {% endif %}
            - {{ mes }}/{{ ano }}</h2>
+        <center>
+        <div class="grafico-container" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px;">
+            <canvas id="graficoPorcentagem"></canvas>
+        </div>
+    </center>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>  <!-- Versão do Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>  <!-- Versão do plugin -->
+  
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+            // Registra o plugin chartjs-plugin-datalabels para a versão 3.x
+            Chart.register(ChartDataLabels);
+
+                var ctx = document.getElementById("graficoPorcentagem").getContext("2d");
+                
+                var porcentagemVendas = {{ porcentagem_vendas|default:0 }};  // Passa o valor de porcentagem de vendas
+                var metaMaxima = 1000; // Exemplo de meta (pode ser dinâmico)
+        
+                // Ajuste: se a porcentagem de vendas for superior a 100%, a meta não pode ser negativa
+                var vendas = Math.min(porcentagemVendas, 100);  // Limita as vendas a 100% (não ultrapassa 100)
+                var meta = vendas === 100 ? 0 : 100 - vendas;  // Se atingiu 100%, não mostra meta negativa
+        
+        
+                new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Vendas", "Meta"],
+                        datasets: [{
+                            data: [vendas, meta],  // Ajusta a divisão entre vendas e meta
+                            backgroundColor: ["#420a36", "#b17aa8"],  // Cor verde para vendas, amarela para a meta
+                            hoverBackgroundColor: ["#420a36", "#b17aa8"],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutoutPercentage: 70,  // Ajusta o tamanho do buraco no meio do doughnut
+                        plugins: {
+                            legend: {
+                                position: "top",
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return tooltipItem.raw.toFixed(2) + "%";  // Formata como percentual
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                display: true,
+                                color: "#fff",  // Cor do texto
+                                formatter: function(value) {
+                                    return value.toFixed(2) + "%";  // Formata o valor como percentual
+                                },
+                                font: {
+                                    weight: "bold",
+                                    size: 14 // Ajuste o tamanho da fonte conforme necessário
+                                },
+                                anchor: 'center',  // Posiciona o texto no centro do círculo
+                                align: 'center',   // Alinha o texto no centro
+                                clip: false        // Impede o corte do texto se for muito longo
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+        
+
         <table border="1">
             <thead>
                 <tr>
