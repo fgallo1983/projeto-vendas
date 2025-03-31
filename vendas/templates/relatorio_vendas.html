@@ -21,7 +21,11 @@
 
                 <label for="ano">Ano:</label>
                 <select name="ano" id="ano">
-                    <option value="{{ ano }}" selected>{{ ano }}</option>
+                    {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                {% endfor %}
                 </select>
 
                 <button type="submit">Aplicar Filtro</button>

@@ -1,5 +1,6 @@
 import datetime
 import calendar
+from collections import defaultdict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -11,6 +12,7 @@ from django.contrib import messages
 from django.utils.timezone import now
 from django.contrib.auth.views import PasswordResetView 
 from django.urls import reverse_lazy
+
 from .forms import VendaForm, RoteiroForm, EditarVendasForm
 from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo
 from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor
@@ -53,6 +55,18 @@ def home_adm(request):
 
     # Filtra as vendas pelo mês e ano
     vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+    vendas_ano = Venda.objects.filter(data_venda__year=ano)
+    
+    # Dicionário para armazenar vendas por mês
+    vendas_por_mes = defaultdict(int)
+    
+    # Somar as quantidades vendidas por mês
+    for venda_ano in vendas_ano:
+        mes_venda = venda_ano.data_venda.month 
+        vendas_por_mes[mes_venda] += venda_ano.quantidade_vendida
+        
+     # Criar lista ordenada para o gráfico
+    vendas_mensais = [vendas_por_mes.get(m, 0) for m in range(1, 13)]
 
     # Dicionário para armazenar vendas por vendedor
     vendas_por_vendedor = {}
@@ -103,6 +117,13 @@ def home_adm(request):
         (5, "Maio"), (6, "Junho"), (7, "Julho"), (8, "Agosto"),
         (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro")
     ]
+    
+    # Obtém todos os anos disponíveis no banco de dados ordenados do mais recente ao mais antigo
+    anos_disponiveis = (
+        Venda.objects.values_list("data_venda__year", flat=True)
+        .distinct()
+        .order_by("-data_venda__year")
+    )
 
     context = {
         'total_pecas': total_pecas,
@@ -112,9 +133,11 @@ def home_adm(request):
         'mes': mes,
         'ano': ano,
         'meses_disponiveis': meses_disponiveis,
+        'anos_disponiveis': anos_disponiveis,
         'porcentagem_meta': porcentagem_meta,
         'mes_atual': datetime.datetime.now().month,
         'ano_atual': datetime.datetime.now().year,
+        'vendas_mensais': vendas_mensais,  
     }
 
     return render(request, 'home_adm.html', context)
@@ -207,6 +230,13 @@ def relatorio_vendas(request):
         (5, "Maio"), (6, "Junho"), (7, "Julho"), (8, "Agosto"),
         (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro")
     ]
+    
+    # Obtém todos os anos disponíveis no banco de dados ordenados do mais recente ao mais antigo
+    anos_disponiveis = (
+        Venda.objects.values_list("data_venda__year", flat=True)
+        .distinct()
+        .order_by("-data_venda__year")
+    )
 
     return render(request, "relatorio_vendas.html", {
         "vendas_por_vendedor": vendas_por_vendedor,
@@ -214,13 +244,14 @@ def relatorio_vendas(request):
         "ano": ano,
         "mes": mes,
         'meses_disponiveis': meses_disponiveis,
+        'anos_disponiveis': anos_disponiveis,
     })
 
 
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('index')
+    return redirect('index.html')
 
 @login_required
 def pagina_roteiros(request):

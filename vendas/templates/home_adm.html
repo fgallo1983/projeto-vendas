@@ -37,7 +37,11 @@
 
                 <label for="ano">Ano:</label>
                 <select name="ano" id="ano">
-                    <option value="{{ ano }}" selected>{{ ano }}</option>
+                    {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                {% endfor %}
                 </select>
 
                 <button type="submit">Aplicar Filtro</button>
@@ -68,7 +72,7 @@
 <script>
     var ctxMensal = document.getElementById('chartMensal').getContext('2d');
     var ctxProdutos = document.getElementById('chartProdutos').getContext('2d');
-    var ctxVendedores = document.getElementById('chartVendedores').getContext('2d');
+    var ctxVendedores = document.getElementById('chartVendedores').getContext('2d');    
     var canvas = document.getElementById('chartVendedores');
     canvas.height = 300;  // Definir altura diretamente via JS
     
@@ -76,14 +80,15 @@
     var corMensal = '#6f42c1';   // Roxo
     var corProdutos = '#007bff'; // Azul
     var corVendedores = '#20c997'; // Verde água
-    
+
+    var vendasMensais = {{ vendas_mensais|safe }};  // Recebe os valores reais do Django
     var chartMensal = new Chart(ctxMensal, {
         type: 'bar',
         data: {
-            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
             datasets: [{
                 label: 'Vendas Mensais',
-                data: [100, 200, 150, 300, 250, 400], // Substituir com dados reais
+                data: vendasMensais, // Usa os valores reais
                 backgroundColor: corMensal
             }]
         }
