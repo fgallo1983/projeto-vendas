@@ -5,11 +5,13 @@
 
 {% block content %}
     <div class="form-container">
+        <div class="registrar-venda-container">
         <h2>Registrar Venda</h2><br>
         <form method="POST" action="{% url 'registrar_venda' %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Cadastrar Venda</button>
         </form>
+        </div>
     </div>
 {% endblock %}

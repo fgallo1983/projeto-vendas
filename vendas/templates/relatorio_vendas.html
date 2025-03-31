@@ -1,109 +1,79 @@
 {% extends 'base.html' %}
 {% load static %}
-<!-- Vincula o arquivo CSS -->
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 {% block content %}
-<div class="form-container">
+<div class="container" style="max-width: 1400px; margin: auto;">
+<br>
+    <!-- Filtros e Tabela juntos -->
+    <div class="conteudo-container">
+        
+        <!-- Filtros à esquerda -->
+        
+            <div class="filtros-relatorio">
+            <h3>Filtrar Relatório</h3>
+            <form method="get">
+                <label for="mes">Mês:</label>
+                <select name="mes" id="mes">
+                    {% for num_mes, nome_mes in meses_disponiveis %}
+                        <option value="{{ num_mes }}" {% if num_mes == mes %}selected{% endif %}>{{ nome_mes }}</option>
+                    {% endfor %}
+                </select>
 
-<h2>Relatório de Vendas</h2>
+                <label for="ano">Ano:</label>
+                <select name="ano" id="ano">
+                    <option value="{{ ano }}" selected>{{ ano }}</option>
+                </select>
 
-<!-- Formulário de Filtros -->
-<div class="form-inline">
-<form method="get" action="">
-    <label for="mes">Mês:</label>
-    <select name="mes">
-        {% for mes in meses_disponiveis %}
-            <option value="{{ mes }}" {% if mes_atual == mes %}selected{% endif %}>
-                {% if mes == 1 %}Janeiro{% elif mes == 2 %}Fevereiro{% elif mes == 3 %}Março{% elif mes == 4 %}Abril{% elif mes == 5 %}Maio{% elif mes == 6 %}Junho{% elif mes == 7 %}Julho{% elif mes == 8 %}Agosto{% elif mes == 9 %}Setembro{% elif mes == 10 %}Outubro{% elif mes == 11 %}Novembro{% elif mes == 12 %}Dezembro{% endif %}
-            </option>
-        {% endfor %}
-    </select>
+                <button type="submit">Aplicar Filtro</button>
+            </form>
+        
+        </div>
 
-    <label for="ano">Ano:</label>
-    <select name="ano">
-        {% for ano in anos_disponiveis %}
-            <option value="{{ ano }}" {% if ano_atual == ano %}selected{% endif %}>{{ ano }}</option>
-        {% endfor %}
-    </select>
+        <!-- Tabela à direita -->
+        <div class="tabelas-container">
+            <div class="tabela">
+                <h3>Ranking de Promotoras</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Vendedora</th>
+                            <th>Total Vendido</th>
+                            <th>Comissão Total (R$)</th>
+                            <th>% da Meta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendedor_id, dados in vendas_por_vendedor.items %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <a href="{% url 'selos' id_vendedor=dados.vendedor.id %}">
+                                    {{ dados.vendedor.first_name }} {{ dados.vendedor.last_name }}
+                                </a>
+                            </td>
+                            <td>{{ dados.total_geral_pecas }}</td>
+                            <td>R$ {{ dados.total_geral_valor|floatformat:2 }}</td>
+                            <td>{{ dados.percentual_meta|floatformat:2 }}%</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">Nenhuma venda encontrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <button type="submit">Filtrar</button>
-</form>
+    </div> <!-- Fim de conteudo-container -->
+
+    <!-- Gráfico ocupando toda a largura abaixo -->
+    <div class="grafico-container">
+        <canvas id="graficoVendas"></canvas>
+    </div>
+
 </div>
 
-
-
-<!-- Tabela de Vendas por Vendedor -->
-<div class="tabelas-container">
-    <div class="tabela">
-        <h3>Vendas por Vendedora</h3>
-        <p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
-<table border="1">
-    <thead>
-        <tr>
-            <th>#</th>  <!-- Nova coluna para o número -->
-            <th>Vendedora</th>
-            <th>Total Vendido</th>
-            <th>Valor Total (R$)</th> <!-- Nova coluna -->
-        </tr>
-    </thead>
-    <tbody>
-{% for vendedor, dados in vendas_por_vendedor.items %}
-    <tr>
-        <td>{{ forloop.counter }}</td> <!-- Exibe o número da linha -->
-        <td>
-            {% if dados.vendedor.id %}
-                <a href="{% url 'selos' id_vendedor=dados.vendedor.id %}">
-                    {{ dados.vendedor.first_name }} {{ dados.vendedor.last_name }}
-                </a>
-            {% else %}
-                <span>Vendedor não encontrado</span>
-            {% endif %}
-        </td>
-        <td>{{ dados.total_geral_pecas }}</td>
-        <td><strong>R$ {{ dados.total_geral_valor|floatformat:2 }}</strong></td>
-    </tr>
-{% empty %}
-    <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
-{% endfor %}  
-    </tbody>
-</table>
-</div>
-
-
-<div class="tabela">
-<!-- Tabela de Vendas por Loja -->
-<h3>Vendas por Loja</h3>
-<p> {% if mes %}{{ mes }}{% else %}{{ mes_atual }}{% endif %}/{% if ano %}{{ ano }}{% else %}{{ ano_atual }}{% endif %}</p>
-<table border="1">
-    <thead>
-        <tr>
-            <th>#</th>  <!-- Nova coluna para o número -->
-            <th>Loja</th>
-            <th>Total Vendido</th>
-            <th>Valor Total (R$)</th> <!-- Nova coluna -->
-        </tr>
-    </thead>
-    <tbody>
-        {% for loja_id, venda in vendas_por_loja.items %}
-        <tr>
-            <td>{{ forloop.counter }}</td> <!-- Número da linha -->
-            <td>{{ venda.loja.nome }}</td> <!-- Nome da loja -->
-            <td>{{ venda.total_geral_pecas }}</td> <!-- Total de peças vendidas -->
-            <td><strong>R$ {{ venda.total_geral_valor|floatformat:2 }}</strong</td> <!-- Valor total formatado -->
-        </tr>
-    {% empty %}
-        <tr><td colspan="4">Nenhuma venda encontrada.</td></tr>
-    {% endfor %}
-    </tbody>
-</table>
-</div>
-</div>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<canvas id="graficoVendas" width="400" height="200"></canvas>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var ctx = document.getElementById("graficoVendas").getContext("2d");
@@ -130,8 +100,7 @@
                     {
                         label: "Vendas",
                         data: vendasPromotoras,
-                        backgroundColor: "rgba(66, 10, 54, 0.5)",
-                        borderColor: "rgba(75, 192, 192, 1)",
+                        backgroundColor: "rgba(111, 66, 193, 0.8)",
                         borderWidth: 1
                     },
                     {
@@ -147,6 +116,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true
@@ -156,4 +126,5 @@
         });
     });
 </script>
+
 {% endblock %}

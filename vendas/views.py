@@ -1,19 +1,19 @@
+import datetime
+import calendar
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, logout, get_user_model
+from django.db.models import Sum, Min, Max, Value
+from django.db.models.functions import Concat
+from django.contrib import messages
+from django.utils.timezone import now
+from django.contrib.auth.views import PasswordResetView 
+from django.urls import reverse_lazy
 from .forms import VendaForm, RoteiroForm, EditarVendasForm
 from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, logout
-from .models import ArquivoVendedor
-from django.db.models import Sum
-from django.contrib import messages
-import datetime
-from django.db.models import Min, Max  # Importar para pegar o menor ID do grupo
-from django.utils.timezone import now
-import calendar
-from datetime import date
-from django.contrib.auth.views import PasswordResetView
-from django.urls import reverse_lazy
+from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor
 
 
 def index(request):
@@ -47,7 +47,77 @@ def home_vendedor(request):
 
 @login_required
 def home_adm(request):
-    return render(request, 'home_adm.html')
+    # Pega mês e ano do filtro ou usa o mês/ano atual
+    mes = int(request.GET.get('mes', datetime.datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.datetime.now().year))
+
+    # Filtra as vendas pelo mês e ano
+    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+
+    # Dicionário para armazenar vendas por vendedor
+    vendas_por_vendedor = {}
+
+    # Organizar vendas por vendedor
+    for venda in vendas:
+        vendedor_id = venda.vendedor.id
+
+        if vendedor_id not in vendas_por_vendedor:
+            vendas_por_vendedor[vendedor_id] = []
+
+        vendas_por_vendedor[vendedor_id].append(venda)
+
+    # Aplicação do cálculo de comissão por vendedor
+    for vendedor_id, vendas_vendedor in vendas_por_vendedor.items():
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor)
+        vendas_por_vendedor[vendedor_id] = {
+            'total_geral_pecas': total_pecas,
+            'total_geral_valor': total_valor,
+        }
+
+    # Soma a comissão total dos vendedores
+    total_comissao = sum(dados['total_geral_valor'] for dados in vendas_por_vendedor.values())
+
+    # Calcula o total de peças vendidas
+    total_pecas = sum(dados['total_geral_pecas'] for dados in vendas_por_vendedor.values())
+
+    # Meta
+    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+
+    user = get_user_model()  # Pega o modelo de usuário correto
+    num_vendedores = user.objects.filter(is_staff=False).count()
+    meta_total_mes = meta_maxima * num_vendedores
+
+    porcentagem_meta = (total_pecas / meta_total_mes) * 100 if meta_total_mes > 0 else 0
+
+    # Ranking de produtos (ordenado pelo total vendido)
+    ranking_produtos = vendas.values('produto__nome').annotate(
+        total_vendido=Sum('quantidade_vendida')
+    ).order_by('-total_vendido')
+    
+    # Ranking de vendedores (ordenado pelo total vendido)
+    ranking_vendedores = calcular_meta_restante(request)  # Passa a requisição aqui
+
+    # Lista de meses para o filtro
+    meses_disponiveis = [
+        (1, "Janeiro"), (2, "Fevereiro"), (3, "Março"), (4, "Abril"),
+        (5, "Maio"), (6, "Junho"), (7, "Julho"), (8, "Agosto"),
+        (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro")
+    ]
+
+    context = {
+        'total_pecas': total_pecas,
+        'total_comissao': total_comissao,  
+        'ranking_produtos': ranking_produtos,
+        'ranking_vendedores': ranking_vendedores,  
+        'mes': mes,
+        'ano': ano,
+        'meses_disponiveis': meses_disponiveis,
+        'porcentagem_meta': porcentagem_meta,
+        'mes_atual': datetime.datetime.now().month,
+        'ano_atual': datetime.datetime.now().year,
+    }
+
+    return render(request, 'home_adm.html', context)
 
 
 @login_required
@@ -87,23 +157,21 @@ def is_admin(user):
 
 @login_required
 def relatorio_vendas(request):
-    today = datetime.date.today()
-    mes_atual = today.month
-    ano_atual = today.year
-
-    ano = int(request.GET.get('ano', ano_atual))
-    mes = int(request.GET.get('mes', mes_atual))
-
+    # Pega mês e ano do filtro ou usa o mês/ano atual
+    mes = int(request.GET.get('mes', datetime.datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.datetime.now().year))
+    
     vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
     produtos = Produto.objects.all()
 
+    # Obtém a meta máxima definida no sistema
+    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+
     # Agrupamento por vendedor
     vendas_por_vendedor = {}
-    vendas_por_loja = {}
 
     for venda in vendas:
         vendedor_id = venda.vendedor.id
-        loja_id = venda.loja.id  # Pega a loja diretamente da venda
 
         # Inicializa os dados do vendedor
         if vendedor_id not in vendas_por_vendedor:
@@ -111,97 +179,41 @@ def relatorio_vendas(request):
                 'vendedor': venda.vendedor,
                 'total_por_produto': {produto.id: 0 for produto in produtos},
                 'valor_por_produto': {produto.id: 0 for produto in produtos},
-                'total_geral_pecas': 0,
-                'total_geral_valor': 0,
-            }
-
-        # Inicializa os dados da loja
-        if loja_id not in vendas_por_loja:
-            vendas_por_loja[loja_id] = {
-                'loja': venda.loja,
-                'total_por_produto': {produto.id: 0 for produto in produtos},
-                'valor_por_produto': {produto.id: 0 for produto in produtos},
-                'total_geral_pecas': 0,
-                'total_geral_valor': 0,
             }
 
         # Atualiza os totais por vendedor
         vendas_por_vendedor[vendedor_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
-        vendas_por_vendedor[vendedor_id]['total_geral_pecas'] += venda.quantidade_vendida
 
-        # Atualiza os totais por loja
-        vendas_por_loja[loja_id]['total_por_produto'][venda.produto.id] += venda.quantidade_vendida
-        vendas_por_loja[loja_id]['total_geral_pecas'] += venda.quantidade_vendida
+    # Aplicação do cálculo de comissão baseado no total de peças vendidas
+    for vendedor_id, dados in vendas_por_vendedor.items():
+        vendas_vendedor = vendas.filter(vendedor__id=vendedor_id)
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor)
+
+        # Calcula a meta restante e o percentual atingido
+        meta_restante = max(meta_maxima - total_pecas, 0)
+        percentual_meta = (total_pecas / meta_maxima) * 100 if meta_maxima > 0 else 0
+
+        dados['total_geral_pecas'] = total_pecas
+        dados['total_geral_valor'] = total_valor
+        dados['meta_restante'] = meta_restante
+        dados['percentual_meta'] = percentual_meta
 
     # Ordenando as vendas por quantidade (mais vendido no topo)
     vendas_por_vendedor = dict(sorted(vendas_por_vendedor.items(), key=lambda item: item[1]['total_geral_pecas'], reverse=True))
-    vendas_por_loja = dict(sorted(vendas_por_loja.items(), key=lambda item: item[1]['total_geral_pecas'], reverse=True))
-
-    # Função para obter o acréscimo com base no total de peças
-    def obter_acrescimo(total_pecas):
-        # Consulta o banco para as faixas de acréscimo
-        faixas_acrescimo = MetaAcrescimo.objects.all()
-
-        for faixa in faixas_acrescimo:
-            if faixa.min_pecas <= total_pecas <= (faixa.max_pecas or total_pecas):
-                return faixa.acrescimo
-        return 0  # Retorna 0 caso não se encaixe em nenhuma faixa
-
-    # Aplicação do acréscimo baseado no total de peças vendidas para vendedores
-    for vendedor_id, dados in vendas_por_vendedor.items():
-        total_pecas = dados['total_geral_pecas']
-        
-        # Obtém o acréscimo correspondente ao total de peças
-        acrescimo = obter_acrescimo(total_pecas)
-
-        # Atualiza os valores dos produtos e calcula o total por vendedor
-        for produto in produtos:
-            preco_base = produto.valor or 0
-            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
-            valor_total_produto = dados['total_por_produto'][produto.id] * preco_final
-            dados['valor_por_produto'][produto.id] = valor_total_produto
-            dados['total_geral_valor'] += valor_total_produto
-
-    # Calcula os totais gerais para vendedores
-    total_geral_pecas_vendedores = sum(dados['total_geral_pecas'] for dados in vendas_por_vendedor.values())
-    total_geral_valor_vendedores = sum(dados['total_geral_valor'] for dados in vendas_por_vendedor.values())
     
-    # Aplicação do acréscimo baseado no total de peças vendidas para lojas
-    for loja_id, dados in vendas_por_loja.items():
-        total_pecas = dados['total_geral_pecas']
-        
-        # Obtém o acréscimo correspondente ao total de peças
-        acrescimo = obter_acrescimo(total_pecas)
-
-        # Atualiza os valores dos produtos e calcula o total por loja
-        for produto in produtos:
-            preco_base = produto.valor or 0
-            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
-            valor_total_produto = dados['total_por_produto'][produto.id] * preco_final
-            dados['valor_por_produto'][produto.id] = valor_total_produto
-            dados['total_geral_valor'] += valor_total_produto
-
-    # Calcula os totais gerais para lojas
-    total_geral_pecas_lojas = sum(dados['total_geral_pecas'] for dados in vendas_por_loja.values())
-    total_geral_valor_lojas = sum(dados['total_geral_valor'] for dados in vendas_por_loja.values())
-    
-    meta_maxima = MetaAcrescimo.objects.aggregate(max_meta=Max("min_pecas"))["max_meta"] or 0
+        # Lista de meses para o filtro
+    meses_disponiveis = [
+        (1, "Janeiro"), (2, "Fevereiro"), (3, "Março"), (4, "Abril"),
+        (5, "Maio"), (6, "Junho"), (7, "Julho"), (8, "Agosto"),
+        (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro")
+    ]
 
     return render(request, "relatorio_vendas.html", {
-        "ano_atual": ano_atual,
-        "mes_atual": mes_atual,
-        "anos_disponiveis": list(range(ano_atual, 2031)),
-        "meses_disponiveis": range(1, 13),
         "vendas_por_vendedor": vendas_por_vendedor,
-        "vendas_por_loja": vendas_por_loja, 
-        "produtos": produtos,
-        "total_geral_pecas_vendedores": total_geral_pecas_vendedores,
-        "total_geral_valor_vendedores": total_geral_valor_vendedores,
-        "total_geral_pecas_lojas": total_geral_pecas_lojas,
-        "total_geral_valor_lojas": total_geral_valor_lojas,
+        "meta_maxima": meta_maxima,
         "ano": ano,
         "mes": mes,
-        "meta_maxima": meta_maxima,
+        'meses_disponiveis': meses_disponiveis,
     })
 
 
@@ -287,38 +299,17 @@ def selos(request, id_vendedor=None):
     for venda in vendas:
         vendas_por_dia[venda.data_venda.day][venda.produto.id] = venda.quantidade_vendida
 
+    # 🔹 Mantemos total_por_produto para ser usado no template
     total_por_produto = {produto.id: 0 for produto in produtos}
-    valor_por_produto = {produto.id: 0 for produto in produtos}
 
     for venda in vendas:
         total_por_produto[venda.produto.id] += venda.quantidade_vendida
 
-    total_geral_pecas = sum(total_por_produto.values())
+    # 🔹 Calculamos comissão e obtemos valores atualizados
+    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
 
-    # 🔹 Busca o acréscimo correto no banco de dados
-    acrescimo = obter_acrescimo(total_geral_pecas)
-
-    # Obtém a menor meta cadastrada no banco
-    meta_minima = MetaAcrescimo.objects.aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
-
-    # Ajusta os valores dos produtos sem alterar o banco de dados
-    for produto in produtos:
-        preco_base = produto.valor or 0
-
-        # Se a vendedora ainda não atingiu o mínimo, mantém o preço base
-        if total_geral_pecas < meta_minima:
-            preco_final = preco_base
-        else:
-            # Apenas produtos com preço base <= 0.50 recebem acréscimo
-            if preco_base <= 1.00:
-                preco_final = preco_base + acrescimo
-            else:
-                preco_final = preco_base
-        
-        # Agora, calculamos o valor total por produto
-        valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final
-
-    total_geral_valor = sum(valor_por_produto.values())
+    # 🔹 Precisamos recuperar os valores por produto para exibir no template
+    valor_por_produto = {produto.id: total_por_produto[produto.id] * produto.valor for produto in produtos}
 
     DIAS_SEMANA = {
         "Monday": "Segunda-feira",
@@ -345,6 +336,8 @@ def selos(request, id_vendedor=None):
     porcentagem_vendas = round((total_geral_pecas / meta_maxima) * 100, 2) if meta_maxima else 0
 
     porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
+    
+    meta_restante = calcular_meta_vendedor(vendedor)
 
     return render(
         request,
@@ -356,8 +349,8 @@ def selos(request, id_vendedor=None):
             "meses_disponiveis": range(1, 13),
             "vendas_por_dia": vendas_por_dia,
             "produtos": produtos,
-            "total_por_produto": total_por_produto,
-            "valor_por_produto": valor_por_produto,
+            "total_por_produto": total_por_produto,  # ✅ Restaurado para evitar erro no template
+            "valor_por_produto": valor_por_produto,  # ✅ Restaurado para evitar erro no template
             "total_geral_pecas": total_geral_pecas,
             "total_geral_valor": total_geral_valor,
             "dias_formatados": dias_formatados,
@@ -365,6 +358,7 @@ def selos(request, id_vendedor=None):
             "mes": mes,
             "vendedor": vendedor,
             "porcentagem_vendas": porcentagem_vendas,  
+            "meta_restante": meta_restante,
         },
     )
 

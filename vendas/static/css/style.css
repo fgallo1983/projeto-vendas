@@ -10,15 +10,15 @@
 body {
     font-family: 'Mulish', sans-serif;
     background: #f2f2f2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* height: 100vh; */
     margin: 0;
     padding: 0;
     padding-top: 100px; /* Mesma altura do header */
-
+    width: 100%;
+    height: 100%;
+    max-width: 1400px; /* Limita a largura máxima */
+    margin: 0 auto; /* Centraliza o conteúdo */
 }
+
 
 a {
     color: black;
@@ -358,50 +358,143 @@ p {
     background-color: #f8f9fa;  /* Cor de fundo suave */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra suave */
+    align-items: center;
 }
 
-/* Estilo da tabela */
+/* Estilo específico para o template registrar_venda */
+.registrar-venda-container {
+    max-width: 300px; /* Largura limitada */
+    margin: 0 auto; /* Centraliza a div dentro do container */
+}
+
+
+/* Estilo específico para a página Editar Venda */
+.editar-venda-container {
+    max-width: 300px; /* Limita a largura a 1400px */
+    margin: 0 auto; /* Centraliza a div */
+    padding: 20px;
+    background-color: #f8f9fa;  /* Cor de fundo suave */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra suave */
+}
+
+.container {
+    max-width: 1400px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔹 Filtros e tabela lado a lado */
+.conteudo-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+/* 🔹 Filtros ficam à esquerda */
+.filtros-container {
+    width: 100%;
+    min-width: 220px;
+    margin-right: 20px;
+}
+
+/* Ajustando o tamanho do ranking para alinhar com os filtros */
+.filtros-relatorio {
+    width: 20%;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    margin-right: 20px; /* Espaçamento entre filtro e tabela */
+}
+
+/* 🔹 A tabela ocupa o restante do espaço */
+.tabelas-container {
+    width: 80%;
+    overflow-x: auto;
+}
+
+/* 🔹 O gráfico ocupa toda a largura */
+.grafico-container {
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#graficoVendas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#graficoVendas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.filtros-container {
+    width: 200px;
+}
+
+.conteudo-container {
+    flex: 1;
+}
+
+.tabelas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+    overflow-x: auto; /* Mantém o scroll horizontal */
+}
+
+.tabela {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-height: 300px;  /* Altura máxima para a tabela */
+    overflow-y: auto;   /* Força a rolagem vertical se necessário */
+}
+
+.tabela h3 {
+    background: #420a36;
+    color: white;
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    font-family: 'Arial', sans-serif;
-    display: block;
-    max-height: 500px; /* Altura máxima para rolagem */
-    overflow-y: auto; /* Habilita rolagem vertical */
+    
 }
 
-/* Estilo para as células da tabela */
-td, th {
-    padding: 16px;
+thead {
+    background: #ddd;
+}
+
+th, td {
+    padding: 10px;
     text-align: left;
 }
 
-/* Linha alternada de fundo (cores diferentes para as linhas) */
-tr:nth-child(odd) {
-    background-color: #f1f1f1;
-}
-
-tr:nth-child(even) {
-    background-color: #cfd2d4;
-}
-
-/* Estilo do cabeçalho da tabela */
-th {
-    background-color: #d882cd;
-    color: white;
-    font-weight: bold;
-}
-
-thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10; /* Garante que o cabeçalho fique sobre os dados */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombrinha para destaque */
+tbody tr:nth-child(even) {
+    background: #f9f9f9;
 }
 
 h2 {
+    font-size: 24px;
+    color: #333;
     text-align: center;
+    padding-bottom: 20px;
 }
 
 /* Estilo dos inputs dentro do formulário */
@@ -498,29 +591,140 @@ label {
     font-weight: bold;
 }
 
-.tabelas-container {
-    display: flex;           /* Mantém os elementos lado a lado */
-    gap: 20px;               /* Espaço entre as tabelas */
-    justify-content: center; /* Centraliza as tabelas na tela */
-    align-items: stretch;    /* Faz com que as tabelas fiquem com a mesma altura */
-    flex-wrap: wrap;         /* Permite que quebrem linha se necessário */
-}
 
-/* .tabela {
-    flex: 1;
-    min-width: 400px;
-    max-width: 45%;
+/* Estilo para o contêiner do dashboard (específico para home_adm) */
+.dashboard-container {
     display: flex;
-    flex-direction: column;/
-}
- */
-
- .grafico-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    height: 100vh;
+    overflow: auto;
     width: 100%;
-    height: 300px;  /* Ajuste conforme necessário */
+    max-width: 1400px; /* Limita a largura máxima */
+    margin: 0 auto; /* Centraliza o conteúdo */
+}
+
+.dashboard-header,
+.indicadores,
+.filtros-ranking-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+
+.grafico-ranking {
+    width: 70%; /* Ajustado para alinhar corretamente */
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Ajustando o tamanho do ranking para alinhar com os filtros */
+.filtros {
+    width: 30%;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+.indicador {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    width: 30%;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    max-height: 100px;
+}
+
+.indicadores-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px; /* Espaço entre o gráfico e os indicadores */
+}
+
+.grafico-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    width: 100%;
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.grafico {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    width: 48%; /* A largura do gráfico será 48%, para ficar lado a lado */
+}
+
+
+#chartProdutos, #chartMensal {
+    width: 100%;
+    height: 300px;
+}
+
+#chartVendedores {
+    width: 100%;
+    height: 300px; /* Altura fixa do gráfico */
+    display: block;  /* Garante que o canvas seja tratado como um bloco */
+}
+
+
+/* Adicionando regra para garantir que a largura máxima de 1400px seja respeitada */
+@media (max-width: 1400px) {
+    .dashboard-container {
+        max-width: 100%; /* Garante que em telas menores que 1400px, o conteúdo ocupe 100% da largura */
+    }
+}
+
+@media (max-width: 920px) {
+    .dashboard-container {
+        padding: 15px; /* Ajusta o padding em telas menores */
+    }
+
+    .filtros, .indicador, .grafico {
+        width: 100%; /* Garante que os itens ocupem 100% da largura em telas menores */
+        margin-bottom: 15px; /* Adiciona margem entre os itens */
+    }
+
+    .dashboard-header, .indicadores, .grafico-ranking {
+        flex-direction: column; /* Alinha os itens em coluna em telas menores */
+        gap: 20px; /* Ajusta o espaçamento entre os itens */
+    }
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+form select {
+    margin-bottom: 10px;
+    padding: 5px;
+    width: 100%;
+}
+
+form button {
+    padding: 10px;
+    background-color: #420a36;
+    color: #fff;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #961d7c;
 }
 
 
@@ -564,9 +768,7 @@ label {
         content: attr(data-label); /* Adiciona um rótulo antes do valor */
         font-weight: bold;
     }
-
-    .roteiros-container {
-        margin-top: 150px; /* Evita sobreposição com o header */
+  
     }
 
     .tabela-scroll {
@@ -580,7 +782,19 @@ label {
     }
 
 
-}
+    .roteiros-container {
+        margin-top: 150px; /* Evita sobreposição com o header */
+    }
+
+    .roteiros-content {
+        max-width: 1000px; /* Largura limitada */
+        margin: 0 auto; /* Centraliza a div dentro do container */
+        padding: 20px; /* Adiciona um pouco de espaço interno */
+        background-color: #f8f9fa; /* Cor de fundo suave */
+        border-radius: 8px; /* Bordas arredondadas */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    }
+
 
 
 
@@ -643,6 +857,7 @@ label {
     .roteiros-container {
         margin-top: 150px; /* Evita sobreposição com o header */
     }
+    
 
     .tabela-scroll {
         display: block; /* Permite que a tabela role horizontalmente */
@@ -683,11 +898,13 @@ label {
         width: 100%;
         margin: 0;
         padding: 0;
+        align-items: center;
     }
 
     h2 {
         font-size: 18px;
         color: #333;
+        text-align: center;
     }
 
     .no-print {

@@ -1,11 +1,156 @@
 {% extends 'base.html' %}
 
-{% load static %}
-
 {% block content %}
-    <div class="background-container">
-        <div class="text-content">
-            <h1>Descubra quem você é, <br>e seja essa pessoa!</h1>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="indicadores">
+            <div class="indicador">
+                <h3>Total de Peças Vendidas</h3>
+                <p>{{ total_pecas }}</p>
+            </div>
+            <div class="indicador">
+                <h3>Comissão Total</h3>
+                <p>R$ {{ total_comissao|floatformat:2 }}</p>
+            </div>
+            <div class="indicador">
+                <h3>Meta</h3>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ porcentagem_meta }}%"></div>
+                </div>
+                <p>{{ porcentagem_meta|floatformat:1 }}% atingida</p>
+            </div>
         </div>
     </div>
+
+<br><br>
+
+    <div class="filtros-ranking-container">
+        <div class="filtros">
+            <h3>Filtros</h3>
+            <form method="get">
+                <label for="mes">Mês:</label>
+                <select name="mes" id="mes">
+                    {% for num_mes, nome_mes in meses_disponiveis %}
+                        <option value="{{ num_mes }}" {% if num_mes == mes %}selected{% endif %}>{{ nome_mes }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="ano">Ano:</label>
+                <select name="ano" id="ano">
+                    <option value="{{ ano }}" selected>{{ ano }}</option>
+                </select>
+
+                <button type="submit">Aplicar Filtro</button>
+            </form>
+        </div>
+
+        <div class="grafico-ranking">
+            <h3>Quem vendeu mais</h3>
+            <canvas id="chartVendedores"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <div class="grafico-container">
+            <div class="grafico" id="grafico-mensal">
+                <h3>Vendas Mensais</h3>
+                <canvas id="chartMensal"></canvas>
+            </div>
+            <div class="grafico" id="grafico-produtos">
+                <h3>Ranking de Produtos</h3>
+                <canvas id="chartProdutos"></canvas>
+            </div>  
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctxMensal = document.getElementById('chartMensal').getContext('2d');
+    var ctxProdutos = document.getElementById('chartProdutos').getContext('2d');
+    var ctxVendedores = document.getElementById('chartVendedores').getContext('2d');
+    var canvas = document.getElementById('chartVendedores');
+    canvas.height = 300;  // Definir altura diretamente via JS
+    
+    // Cores para cada gráfico
+    var corMensal = '#6f42c1';   // Roxo
+    var corProdutos = '#007bff'; // Azul
+    var corVendedores = '#20c997'; // Verde água
+    
+    var chartMensal = new Chart(ctxMensal, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Vendas Mensais',
+                data: [100, 200, 150, 300, 250, 400], // Substituir com dados reais
+                backgroundColor: corMensal
+            }]
+        }
+    });
+    
+    var nomesProdutos = [{% for produto in ranking_produtos %}"{{ produto.produto__nome }}",{% endfor %}];
+    var vendasProdutos = [{% for produto in ranking_produtos %}{{ produto.total_vendido }},{% endfor %}];
+    
+    if (nomesProdutos.length > 0) {
+        var chartProdutos = new Chart(ctxProdutos, {
+            type: 'bar',
+            data: {
+                labels: nomesProdutos,
+                datasets: [{
+                    label: 'Total Vendido',
+                    data: vendasProdutos,
+                    backgroundColor: corProdutos
+                }]
+            },
+            options: {
+                indexAxis: 'y'
+            }
+        });
+    } else {
+        console.warn("Nenhum dado para exibir no ranking de produtos.");
+    }
+    
+    var nomesVendedores = [{% for vendedor in ranking_vendedores %}"{{ vendedor.vendedor_nome }}",{% endfor %}];
+    var vendasVendedores = [{% for vendedor in ranking_vendedores %}{{ vendedor.total_vendido }},{% endfor %}];
+    var metasRestantes = [{% for vendedor in ranking_vendedores %}{{ vendedor.meta_restante }},{% endfor %}];
+    
+    if (nomesVendedores.length > 0) {
+        var chartVendedores = new Chart(ctxVendedores, {
+            type: 'bar',
+            data: {
+                labels: nomesVendedores,
+                datasets: [
+                    {
+                        label: 'Quantidade Vendida',
+                        data: vendasVendedores,
+                        backgroundColor: '#20c997', // Verde água para vendas
+                        borderColor: '#1a8754', // Verde escuro para borda
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Meta Restante',
+                        data: metasRestantes,
+                        backgroundColor: '#b5e4d0', // Verde claro para meta
+                        borderColor: '#96e6b3',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } else {
+        console.warn("Nenhum dado para exibir no ranking de vendedores.");
+    }
+</script>
+
 {% endblock %}
+
