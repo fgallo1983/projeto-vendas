@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-_-o34chn75m3*4&4)cg6xw=hp98m6-vq#kbcl*bogn(yqe@n6l'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'www.skinnovabeauty.com.br',  
@@ -65,8 +65,10 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # "DIRS": [
+        #     "/home/lokenzzi/meuapp/vendas/templates",
+        # ],
         "DIRS": [
-            "/home/lokenzzi/meuapp/vendas/templates",
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -87,18 +89,18 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '3306'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': os.getenv('DB_NAME'),
+    #     'USER': os.getenv('DB_USER'),
+    #     'PASSWORD': os.getenv('DB_PASSWORD'),
+    #     'HOST': os.getenv('DB_HOST'),
+    #     'PORT': os.getenv('DB_PORT', '3306'),
+    # }
 }
 
 
@@ -145,13 +147,13 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # # Diretório onde os arquivos estáticos serão armazenados
-# STATIC_URL = '/vendas/static/'
-STATIC_URL = '/static/'
+STATIC_URL = '/vendas/static/'
+# STATIC_URL = '/static/'
 
 # Diretório onde os arquivos estáticos ficam durante o desenvolvimento
 STATICFILES_DIRS = [
-    # BASE_DIR / 'vendas/static/',  # Altere conforme sua estrutura de pastas
-    os.path.join(BASE_DIR, 'meuapp/vendas/static'),  # Substitua 'meuapp' pelo nome do seu app
+    BASE_DIR / 'vendas/static/',  # Altere conforme sua estrutura de pastas
+    # os.path.join(BASE_DIR, 'meuapp/vendas/static'),  # Substitua 'meuapp' pelo nome do seu app
 ]
 
 
