@@ -124,6 +124,9 @@ def home_adm(request):
         .distinct()
         .order_by("-data_venda__year")
     )
+    
+    if not anos_disponiveis:
+        anos_disponiveis = [ano]
 
     context = {
         'total_pecas': total_pecas,
@@ -145,6 +148,15 @@ def home_adm(request):
 
 @login_required
 def registrar_venda(request):
+    
+    id_vendedor = request.session.get("id_vendedor", None)
+
+    # Se for administrador, bloqueia o acesso e redireciona
+    if request.user.is_staff:
+        messages.error(request, "Administradores não podem registrar vendas!")
+        return redirect('selos', id_vendedor=id_vendedor)
+
+    
     if request.method == "POST":
         form = VendaForm(request.POST, user=request.user)  # 🔹 Passa o usuário para filtrar as lojas
         if form.is_valid():
@@ -214,7 +226,7 @@ def relatorio_vendas(request):
 
         # Calcula a meta restante e o percentual atingido
         meta_restante = max(meta_maxima - total_pecas, 0)
-        percentual_meta = (total_pecas / meta_maxima) * 100 if meta_maxima > 0 else 0
+        percentual_meta = (total_pecas / (meta_maxima-1)) * 100 if meta_maxima > 0 else 0
 
         dados['total_geral_pecas'] = total_pecas
         dados['total_geral_valor'] = total_valor
@@ -237,6 +249,8 @@ def relatorio_vendas(request):
         .distinct()
         .order_by("-data_venda__year")
     )
+    if not anos_disponiveis:
+        anos_disponiveis = [ano]
 
     return render(request, "relatorio_vendas.html", {
         "vendas_por_vendedor": vendas_por_vendedor,
@@ -251,7 +265,7 @@ def relatorio_vendas(request):
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('index.html')
+    return redirect('index')
 
 @login_required
 def pagina_roteiros(request):
@@ -300,6 +314,7 @@ def obter_acrescimo(total_pecas):
 
 @login_required
 def selos(request, id_vendedor=None):
+    request.session["id_vendedor"] = id_vendedor
     if id_vendedor:
         if not request.user.is_staff:
             return redirect("home_vendedor")
@@ -339,8 +354,27 @@ def selos(request, id_vendedor=None):
     # 🔹 Calculamos comissão e obtemos valores atualizados
     total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
 
-    # 🔹 Precisamos recuperar os valores por produto para exibir no template
-    valor_por_produto = {produto.id: total_por_produto[produto.id] * produto.valor for produto in produtos}
+    # 🔹 Aplicamos o cálculo correto do valor por produto, considerando acréscimos
+    valor_por_produto = {}
+
+    # 🔹 Busca o acréscimo correto no banco de dados
+    acrescimo = obter_acrescimo(total_geral_pecas)
+
+    # Obtém a menor meta cadastrada no banco
+    meta_minima = MetaAcrescimo.objects.aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
+
+    for produto in produtos:
+        preco_base = produto.valor or 0
+
+        # Se ainda não atingiu a meta mínima, mantém o preço base
+        if total_geral_pecas < meta_minima:
+            preco_final = preco_base
+        else:
+            # Apenas produtos com preço base <= 1.00 recebem acréscimo
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
+
+        # Calcula o valor total por produto aplicando a nova regra
+        valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final
 
     DIAS_SEMANA = {
         "Monday": "Segunda-feira",
@@ -364,7 +398,7 @@ def selos(request, id_vendedor=None):
         
     # Calculando a porcentagem de vendas em relação à meta
     meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
-    porcentagem_vendas = round((total_geral_pecas / meta_maxima) * 100, 2) if meta_maxima else 0
+    porcentagem_vendas = round((total_geral_pecas / (meta_maxima-1)) * 100, 2) if meta_maxima else 0
 
     porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
     
@@ -381,7 +415,7 @@ def selos(request, id_vendedor=None):
             "vendas_por_dia": vendas_por_dia,
             "produtos": produtos,
             "total_por_produto": total_por_produto,  # ✅ Restaurado para evitar erro no template
-            "valor_por_produto": valor_por_produto,  # ✅ Restaurado para evitar erro no template
+            "valor_por_produto": valor_por_produto,  # ✅ Agora leva em conta os acréscimos corretamente!
             "total_geral_pecas": total_geral_pecas,
             "total_geral_valor": total_geral_valor,
             "dias_formatados": dias_formatados,
@@ -407,6 +441,8 @@ def editar_vendas(request, data):
 
     if not vendas.exists():
         return redirect('registrar_venda')
+    
+    id_vendedor = None  # Variável para armazenar o ID do vendedor editado
 
     # Criação do formulário
     if request.method == "POST":
@@ -421,9 +457,18 @@ def editar_vendas(request, data):
             if excluir_produto == 'on':  # Se o checkbox de excluir foi marcado
                 venda.delete()
                 messages.success(request, f"Produto {venda.produto.nome} excluído com sucesso!")
+                
+            # Guarda o id do vendedor da venda editada
+            id_vendedor = venda.vendedor.id
 
         messages.success(request, "Vendas atualizadas com sucesso!")
-        return redirect('selos')
+        
+        # Se for admin, redireciona para o 'selos' com o id do vendedor associado à venda alterada
+        if request.user.is_superuser and id_vendedor:
+            return redirect('selos', id_vendedor=id_vendedor)
+        else:
+            # Se não for admin, redireciona para o 'selos' padrão
+            return redirect('selos')
     else:
         # Caso não seja POST, cria o formulário com os dados existentes
         form = EditarVendasForm()

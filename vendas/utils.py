@@ -70,7 +70,7 @@ def calcular_meta_restante(request):
     ).order_by('-total_vendido')[:3]  # Pegamos apenas os 3 melhores
     # Adicionamos a meta restante para cada vendedora
     for vendedor in ranking_vendedores:
-        vendedor["meta_restante"] = max(meta_maxima - vendedor["total_vendido"], 0)
+        vendedor["meta_restante"] = max((meta_maxima-1) - vendedor["total_vendido"], 0)
 
     return ranking_vendedores
 
@@ -86,6 +86,6 @@ def calcular_meta_vendedor(vendedor):
     )["total_vendido"] or 0  # Se não houver vendas, retorna 0
     
     # Calcula a meta restante
-    meta_restante = max(meta_maxima - total_vendido, 0)
+    meta_restante = max((meta_maxima-1) - total_vendido, 0)
 
     return meta_restante

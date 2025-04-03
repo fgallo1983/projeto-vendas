@@ -772,16 +772,34 @@ form button:hover {
     }
 
     .tabela-scroll {
-        display: block; /* Permite que a tabela role horizontalmente */
-        white-space: nowrap; /* Impede quebra de palavras nas células */
-        max-width: 100%;
+        max-height: 500px; /* Define a altura máxima da tabela */
+        overflow-y: auto; /* Adiciona rolagem vertical */
+        border: 1px solid #ccc; /* Adiciona uma borda para destacar a área da tabela */
     }
-
+    
     .tabela-scroll table {
-        min-width: 300px; /* Define um tamanho mínimo para evitar compressão excessiva */
+        width: 100%;
+        border-collapse: collapse;
     }
-
-
+    
+    .tabela-scroll thead {
+        position: sticky;
+        top: 0;
+        background: rgba(226, 223, 223, 0.89); 
+        z-index: 10;
+    }
+    
+    .tabela-scroll th {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ccc;
+    }
+    
+    .tabela-scroll td {
+        padding: 8px;
+        border: 1px solid #ccc;
+    }
+    
     .roteiros-container {
         margin-top: 150px; /* Evita sobreposição com o header */
     }
@@ -858,25 +876,6 @@ form button:hover {
         margin-top: 150px; /* Evita sobreposição com o header */
     }
     
-
-    .tabela-scroll {
-        display: block; /* Permite que a tabela role horizontalmente */
-        white-space: nowrap; /* Impede quebra de palavras nas células */
-        max-width: 100%;
-    }
-
-    .tabela-scroll table {
-        width: 350px; /* Define um tamanho mínimo para evitar compressão excessiva */
-        display: block; /* Permite que a tabela role horizontalmente */
-        overflow-x: auto; /* Garante rolagem horizontal quando necessário */
-    }
-
-
-    .tabela-scroll th, .tabela-scroll td {
-        padding: 8px;
-        text-align: left;
-        border: 1px solid #ddd;
-    }
 
 }
 

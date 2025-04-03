@@ -22,7 +22,7 @@
                 <label for="ano">Ano:</label>
                 <select name="ano" id="ano">
                     {% for ano in anos_disponiveis %}
-                    <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>
+                    <option value="{{ ano }}" {% if ano == ano_selecionado|default:ano %}selected{% endif %}>
                         {{ ano }}
                     </option>
                 {% endfor %}
