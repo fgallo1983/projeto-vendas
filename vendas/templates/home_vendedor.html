@@ -1,11 +1,101 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
+
 {% block content %}
-    <div class="background-container">
-        <div class="text-content">
-            <h1>Mantenha o foco nas suas VENDAS!</h1>
+<div class="form-container">
+    <div class="dashboard-header">
+        <div class="indicadores">
+            <div class="indicador">
+                <h3>Total de Peças</h3>
+                <p>{{ total_geral_pecas }}</p>
+            </div>
+            <div class="indicador">
+                <h3>Comissão</h3>
+                <p>R$ {{ total_geral_valor|floatformat:2 }}</p>
+            </div>
+            <div class="indicador">
+                <h3>Meta Restante</h3>
+                <p>{{ meta_restante }}</p>
+            </div>
         </div>
     </div>
+
+    <br><br>
+
+    <div class="filtros-ranking-container">
+        <div class="filtros">
+            <h3>Filtros</h3>
+            <form method="get">
+                <label for="mes">Mês:</label>
+                <select name="mes" id="mes">
+                    {% for num_mes, nome_mes in meses_disponiveis %}
+                        <option value="{{ num_mes }}" {% if num_mes == mes %}selected{% endif %}>{{ nome_mes }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="ano">Ano:</label>
+                <select name="ano" id="ano">
+                    {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if ano == ano_selecionado|default:ano %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                {% endfor %}
+                </select>
+                <button type="submit">Aplicar Filtro</button>
+            </form>
+        </div>
+
+
+       <!-- Tabela à direita -->
+       <div class="grafico-ranking">
+        <div class="tabela">
+            <h3>Ranking de Promotoras</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vendedora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendedor in ranking_vendedores %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ vendedor.vendedor_nome }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Nenhuma venda encontrada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="grafico" id="grafico-mensal">
+        <h3>Vendas Mensais</h3>
+        <canvas id="chartMensal"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctxMensal = document.getElementById('chartMensal').getContext('2d');
+    
+    // Cores para cada gráfico
+    var corMensal = '#6f42c1';   // Roxo
+
+    var vendasMensais = {{ vendas_mensais|safe }};  // Recebe os valores reais do Django
+    var chartMensal = new Chart(ctxMensal, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Vendas Mensais',
+                data: vendasMensais, // Usa os valores reais
+                backgroundColor: corMensal
+            }]
+        }
+    });
+</script>
 {% endblock %}
-
-

@@ -74,18 +74,22 @@ def calcular_meta_restante(request):
 
     return ranking_vendedores
 
-def calcular_meta_vendedor(vendedor):
-    """Calcula a meta restante para uma vendedora específica"""
+def calcular_meta_vendedor(vendedor, mes, ano):
+    """Calcula a meta restante para uma vendedora em um determinado mês e ano"""
     
     # Obtém o valor máximo da meta
     meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
 
-    # Obtém as vendas da vendedora específica
-    total_vendido = Venda.objects.filter(vendedor=vendedor).aggregate(
+    # Obtém as vendas da vendedora no mês e ano especificados
+    total_vendido = Venda.objects.filter(
+        vendedor=vendedor, 
+        data_venda__year=ano, 
+        data_venda__month=mes
+    ).aggregate(
         total_vendido=Sum('quantidade_vendida')
     )["total_vendido"] or 0  # Se não houver vendas, retorna 0
     
     # Calcula a meta restante
-    meta_restante = max((meta_maxima-1) - total_vendido, 0)
+    meta_restante = max((meta_maxima - 1) - total_vendido, 0)
 
     return meta_restante

@@ -351,7 +351,7 @@ p {
 
 /* Estilo geral para o contêiner */
 .form-container {
-    /* max-width: 1000px; */
+    max-width: 1400px;
     margin: 0 auto;
     margin-top: 120px; /* Ajuste dependendo da altura do header */
     padding: 20px;
@@ -391,7 +391,11 @@ p {
     align-items: flex-start;
     justify-content: flex-start;
     width: 100%;
+    flex: 1;
+    align-items: center;
 }
+
+
 
 /* 🔹 Filtros ficam à esquerda */
 .filtros-container {
@@ -410,20 +414,27 @@ p {
     margin-right: 20px; /* Espaçamento entre filtro e tabela */
 }
 
-/* 🔹 A tabela ocupa o restante do espaço */
-.tabelas-container {
-    width: 80%;
-    overflow-x: auto;
+.grafico-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    width: 300px;
+    height: 200px;
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* 🔹 O gráfico ocupa toda a largura */
-.grafico-container {
-    width: 100%;
-    height: 400px;
-    margin-top: 20px;
+.grafico-container-adm {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    width: 100%;
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 #graficoVendas {
@@ -440,16 +451,14 @@ p {
     width: 200px;
 }
 
-.conteudo-container {
-    flex: 1;
-}
-
 .tabelas-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
     align-items: stretch;
-    overflow-x: auto; /* Mantém o scroll horizontal */
+    overflow-x: auto; 
+    width: 80%;
+    overflow-x: auto;
 }
 
 .tabela {
@@ -633,12 +642,13 @@ label {
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 .indicador {
+    flex: 1;
+    min-width: 200px;
     background: #fff;
-    padding: 15px;
+    padding: 20px;
     border-radius: 10px;
-    width: 30%;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    max-height: 100px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
 .indicadores-container {
@@ -646,17 +656,6 @@ label {
     align-items: center;
     justify-content: center;
     gap: 20px; /* Espaço entre o gráfico e os indicadores */
-}
-
-.grafico-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 30px;
-    width: 100%;
-    margin-top: 20px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .grafico {
@@ -688,6 +687,11 @@ label {
 }
 
 @media (max-width: 920px) {
+    .indicadores {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
     .dashboard-container {
         padding: 15px; /* Ajusta o padding em telas menores */
     }
@@ -700,7 +704,27 @@ label {
     .dashboard-header, .indicadores, .grafico-ranking {
         flex-direction: column; /* Alinha os itens em coluna em telas menores */
         gap: 20px; /* Ajusta o espaçamento entre os itens */
+        width: 100%; /* Garante que os itens ocupem 100% da largura em telas menores */
     }
+    .grafico canvas {
+        max-width: 100%;
+    }
+    .filtros-ranking-container {
+        flex-direction: column;
+    }
+    .grafico-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        width: 150px;
+        height: 150px;
+        margin-top: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+
 }
 
 form label {
@@ -737,35 +761,121 @@ form button:hover {
     .container {
         width: 100%;
         padding: 10px;
+        margin-top: 150px; /* Evita sobreposição com o header */
     }
 
-    table, thead, tbody, th, td, tr {
+        /* 🔹 Filtros e tabela lado a lado */
+    .conteudo-container {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        width: 100%;
+        margin-top: 120px;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .tabelas-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+        overflow-y: auto; 
+        width: 100%;
+        overflow-x: auto;
+    }
+
+        /* Ajustando o tamanho do ranking para alinhar com os filtros */
+    .filtros-relatorio {
+        width: 100%;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-container {
+        padding: 15px; /* Ajusta o padding em telas menores */
+        margin-top: 150px; /* Evita sobreposição com o header */
+    }
+
+    .indicadores-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .grafico-container {
+        width: 100%;
+        height: auto;
+        margin-top: 20px;
+        padding: 10px;
+        align-items: center;
+    }
+
+    .grafico-container-adm {
+        width: 100%;
+        height: auto;
+        margin-top: 20px;
+        padding: 10px;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .indicadores {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .indicador {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .tabela {
+        width: 100%;
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+        max-height: 300px;  /* Altura máxima para a tabela */
+    }
+
+    .tabela-responsiva table,
+    .tabela-responsiva thead,
+    .tabela-responsiva tbody,
+    .tabela-responsiva th,
+    .tabela-responsiva td,
+    .tabela-responsiva tr {
         display: block;
     }
 
-    thead {
-        display: none; /* Esconde o cabeçalho */
+    .tabela-responsiva thead {
+        display: none;
     }
 
-    tr {
+    .tabela-responsiva tr {
         margin-bottom: 10px;
         border: 1px solid #ddd;
         padding: 10px;
     }
 
-    td {
+    .tabela-responsiva td {
         display: flex;
         justify-content: space-between;
         padding: 5px;
         border-bottom: 1px solid #ddd;
     }
 
-    td:last-child {
+    .tabela-responsiva td:last-child {
         border-bottom: none;
     }
 
-    td::before {
-        content: attr(data-label); /* Adiciona um rótulo antes do valor */
+    .tabela-responsiva td::before {
+        content: attr(data-label);
         font-weight: bold;
     }
   
@@ -813,15 +923,6 @@ form button:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
     }
 
-
-
-
-/* Para telas médias (tablets) */
-@media (max-width: 900px) {
-    .container {
-        width: 90%;
-    }
-}
 
 @media (max-width: 768px) {
 
@@ -875,8 +976,6 @@ form button:hover {
     .roteiros-container {
         margin-top: 150px; /* Evita sobreposição com o header */
     }
-    
-
 }
 
 @media print {

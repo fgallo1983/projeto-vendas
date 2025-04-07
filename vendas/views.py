@@ -45,7 +45,86 @@ def index(request):
 
 @login_required
 def home_vendedor(request):
-    return render(request, 'home_vendedor.html')
+    
+    # Pega mês e ano do filtro ou usa o mês/ano atual
+    mes = int(request.GET.get('mes', datetime.datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.datetime.now().year))
+    
+    vendedor = request.user
+
+    vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
+    vendas_ano = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano)
+    
+    # Dicionário para armazenar vendas por mês
+    vendas_por_mes = defaultdict(int)
+    
+    # Somar as quantidades vendidas por mês
+    for venda_ano in vendas_ano:
+        mes_venda = venda_ano.data_venda.month
+        vendas_por_mes[mes_venda] += venda_ano.quantidade_vendida
+        
+     # Criar lista ordenada para o gráfico
+    vendas_mensais = [vendas_por_mes.get(m, 0) for m in range(1, 13)]
+    print (vendas_mensais)
+    
+    produtos = Produto.objects.all()
+
+    vendas_por_dia = {d: {produto.id: 0 for produto in produtos} for d in range(1, calendar.monthrange(ano, mes)[1] + 1)}
+
+    for venda in vendas:
+        vendas_por_dia[venda.data_venda.day][venda.produto.id] = venda.quantidade_vendida
+
+    # 🔹 Mantemos total_por_produto para ser usado no template
+    total_por_produto = {produto.id: 0 for produto in produtos}
+
+    for venda in vendas:
+        total_por_produto[venda.produto.id] += venda.quantidade_vendida
+
+    # 🔹 Calculamos comissão e obtemos valores atualizados
+    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
+    
+    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
+    
+    # Filtra as vendas de acordo com o mês e ano selecionados
+    ranking_vendedores = Venda.objects.filter(
+        data_venda__year=ano,  # Filtra pelo ano
+        data_venda__month=mes  # Filtra pelo mês
+    ).annotate(
+        vendedor_nome=Concat('vendedor__first_name', Value(' '), 'vendedor__last_name')
+    ).values('vendedor_nome').annotate(
+        total_vendido=Sum('quantidade_vendida')
+    ).order_by('-total_vendido')[:6]  # Pegamos apenas os 3 melhores
+    
+    # Lista de meses para o filtro
+    meses_disponiveis = [
+        (1, "Janeiro"), (2, "Fevereiro"), (3, "Março"), (4, "Abril"),
+        (5, "Maio"), (6, "Junho"), (7, "Julho"), (8, "Agosto"),
+        (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro")
+    ]
+    
+    # Obtém todos os anos disponíveis no banco de dados ordenados do mais recente ao mais antigo
+    anos_disponiveis = (
+        Venda.objects.values_list("data_venda__year", flat=True)
+        .distinct()
+        .order_by("-data_venda__year")
+    )
+    
+    if not anos_disponiveis:
+        anos_disponiveis = [ano]
+    
+    context = {
+        'total_geral_pecas': total_geral_pecas,
+        'total_geral_valor': total_geral_valor,  
+        'mes': mes,
+        'ano': ano,
+        'meses_disponiveis': meses_disponiveis,
+        'anos_disponiveis': anos_disponiveis,
+        'meta_restante': meta_restante,
+        'ranking_vendedores': ranking_vendedores,
+        'vendas_mensais': vendas_mensais, 
+    }
+
+    return render(request, 'home_vendedor.html', context)
 
 @login_required
 def home_adm(request):
@@ -402,7 +481,8 @@ def selos(request, id_vendedor=None):
 
     porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
     
-    meta_restante = calcular_meta_vendedor(vendedor)
+    
+    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
 
     return render(
         request,
