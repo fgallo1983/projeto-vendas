@@ -7,11 +7,72 @@
     <div class="form-container">
         <div class="registrar-venda-container">
         <h2>Registrar Venda</h2><br>
-        <form method="POST" action="{% url 'registrar_venda' %}">
+        <form method="POST">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Cadastrar Venda</button>
+        
+            {% if user.is_staff %}
+                <div>
+                    <label for="id_vendedor">Vendedora:</label>
+                    {{ form.vendedor }}
+                </div>
+            {% endif %}
+        
+            <div>
+                {{ form.produto.label_tag }}
+                {{ form.produto }}
+            </div>
+        
+            <div>
+                {{ form.loja.label_tag }}
+                {{ form.loja }}
+            </div>
+        
+            <div>
+                {{ form.quantidade_vendida.label_tag }}
+                {{ form.quantidade_vendida }}
+            </div>
+        
+            <div>
+                {{ form.data_venda.label_tag }}
+                {{ form.data_venda }}
+            </div>
+        
+            <button type="submit">Registrar Venda</button>
         </form>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#id_vendedor').change(function() {
+                let idVendedora = $(this).val();
+                if (idVendedora) {
+                    $.ajax({
+                        url: "{% url 'carregar_lojas_por_vendedora' %}",
+                        data: {
+                            'id_vendedora': idVendedora
+                        },
+                        dataType: 'json',
+                        success: function(data) {
+                            let select = $('#id_loja');
+                            select.empty();
+                            if (data.length === 0) {
+                                select.append('<option value="">Nenhuma loja encontrada</option>');
+                            } else {
+                                $.each(data, function(index, loja) {
+                                    select.append('<option value="' + loja.id + '">' + loja.nome + ' - ' + loja.cidade + '</option>');
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+    
+            // ✅ Corrigido: agora dentro do document.ready
+            const vendedorSelecionado = $('#id_vendedor').val();
+            if (vendedorSelecionado) {
+                $('#id_vendedor').trigger('change');
+            }
+        });
+    </script>
 {% endblock %}

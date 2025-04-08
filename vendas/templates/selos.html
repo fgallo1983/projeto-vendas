@@ -145,23 +145,25 @@
                     <th class="coluna-editar">Editar</th>
                 </tr>
             </thead>
+            {% with dia_destacado=request.GET.dia|default_if_none:"" %}
             <tbody>
                 {% for dia, produtos_vendidos in vendas_por_dia.items %}
-                    <tr>
+                    <tr {% if dia|stringformat:"i" == dia_destacado %}class="destaque"{% endif %}>
                         <td data-label="Dia">{{ dia }}</td>
                         <td data-label="Semana">{{ dias_formatados|dict_get:dia }}</td>
                         {% for produto in produtos %}
-                        <td data-label="{{ produto.nome }}">
-                            {{ produtos_vendidos|dict_get:produto.id|default_if_none:"0" }}
-                        </td>
-                    {% endfor %}
+                            <td data-label="{{ produto.nome }}">
+                                {{ produtos_vendidos|dict_get:produto.id|default_if_none:"0" }}
+                            </td>
+                        {% endfor %}
                         <td data-label="Total">{{ produtos_vendidos|sum_values }}</td>
                         <td class="coluna-editar">
+                            <!-- botão de edição -->
                             {% with ano|stringformat:"d" as ano_formatado %}
                             {% with mes|stringformat:"02d" as mes_formatado %}
                             {% with dia|stringformat:"02d" as dia_formatado %}
                                 {% with ano_formatado|add:"-"|add:mes_formatado|add:"-"|add:dia_formatado as data_formatada %}
-                                    <a href="{% url 'editar_vendas' data_formatada %}">
+                                    <a href="{% url 'editar_vendas' vendedor.id data_formatada %}">
                                         <img src="{% static 'images/btn-edit.png' %}" alt="Logo" width="20">
                                     </a>
                                 {% endwith %}
@@ -171,6 +173,7 @@
                         </td>
                     </tr>
                 {% endfor %}
+            {% endwith %}
         
                 <tr>
                     <td colspan="2"><strong>Total em Peças</strong></td>

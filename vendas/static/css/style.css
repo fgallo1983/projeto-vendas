@@ -480,6 +480,12 @@ p {
     border-radius: 8px 8px 0 0;
 }
 
+tr.destaque {
+    background-color: #fff7c0; /* Amarelo claro */
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;

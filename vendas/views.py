@@ -10,13 +10,15 @@ from django.db.models import Sum, Min, Max, Value
 from django.db.models.functions import Concat
 from django.contrib import messages
 from django.utils.timezone import now
-from django.contrib.auth.views import PasswordResetView 
-from django.urls import reverse_lazy
-
+from django.utils.http import urlencode
+from django.http import JsonResponse
+from django.urls import reverse_lazy, reverse
 from .forms import VendaForm, RoteiroForm, EditarVendasForm
-from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo
 from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor
+from django.contrib.auth.views import PasswordResetView 
+from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, Loja
 
+User = get_user_model()
 
 def index(request):
     if request.user.is_authenticated:
@@ -227,42 +229,73 @@ def home_adm(request):
 
 @login_required
 def registrar_venda(request):
-    
-    id_vendedor = request.session.get("id_vendedor", None)
+    id_vendedora = request.GET.get("id_vendedora")
+    data_inicial = request.GET.get("data")  # Para preencher o campo data_venda
 
-    # Se for administrador, bloqueia o acesso e redireciona
+    vendedor = None
+
     if request.user.is_staff:
-        messages.error(request, "Administradores não podem registrar vendas!")
-        return redirect('selos', id_vendedor=id_vendedor)
+        if id_vendedora:
+            vendedor = get_object_or_404(CustomUser, id=id_vendedora, is_staff=False)
+        # Se não houver ID, o admin escolherá no form
+    else:
+        vendedor = request.user
 
-    
     if request.method == "POST":
-        form = VendaForm(request.POST, user=request.user)  # 🔹 Passa o usuário para filtrar as lojas
+        form = VendaForm(request.POST, user=request.user)
+
         if form.is_valid():
             venda = form.save(commit=False)
-            venda.vendedor = request.user  # Associa a venda ao vendedor logado
-            
-            # Verifica se já existe uma venda para o mesmo produto na mesma data
+
+            if request.user.is_staff:
+                vendedor = form.cleaned_data.get('vendedor')  # ← pega do form
+                if not vendedor:
+                    messages.error(request, "Selecione uma vendedora.")
+                    return render(request, "registrar_venda.html", {"form": form})
+            else:
+                vendedor = request.user
+
+            venda.vendedor = vendedor
+            venda.valor = venda.quantidade_vendida * venda.produto.valor
+
+            # Verifica se já existe uma venda do mesmo produto na mesma data
             venda_existente = Venda.objects.filter(
-                produto=venda.produto, data_venda=venda.data_venda, vendedor=venda.vendedor
+                produto=venda.produto,
+                data_venda=venda.data_venda,
+                vendedor=vendedor
             ).exists()
 
             if venda_existente:
-                messages.error(request, "Você já cadastrou este produto nesta data!")
-            else:
-                venda.valor = venda.quantidade_vendida * venda.produto.valor  # Calcula o valor total
-                venda.save()
-                messages.success(request, "Venda registrada com sucesso!")
-            
-            return redirect('selos')
+                messages.error(request, "Já existe uma venda deste produto para esta data.")
+                redirect_url = (
+                    reverse('selos', kwargs={'id_vendedor': vendedor.id})
+                    if request.user.is_staff else reverse('selos')
+                )
+                return redirect(
+                    f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}&dia={venda.data_venda.day}"
+                )
 
+            venda.save()
+            messages.success(request, "Venda registrada com sucesso!")
+
+            redirect_url = (
+                reverse('selos', kwargs={'id_vendedor': vendedor.id})
+                if request.user.is_staff else reverse('selos')
+            )
+            return redirect(
+                f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}&dia={venda.data_venda.day}"
+            )
     else:
-        form = VendaForm(user=request.user)  # 🔹 Passa o usuário também na criação inicial
+        # Inicializa o form com data e vendedor (se estiverem no GET)
+        initial_data = {}
+        if data_inicial:
+            initial_data['data_venda'] = data_inicial
+        if vendedor:
+            initial_data['vendedor'] = vendedor
 
-    vendas = Venda.objects.filter(vendedor=request.user).order_by('-data_venda')
+        form = VendaForm(user=request.user, vendedor=vendedor, initial=initial_data)
 
-    return render(request, "registrar_venda.html", {"form": form, "vendas": vendas})
-
+    return render(request, "registrar_venda.html", {"form": form})
 
 # Verifica se o usuário é administrador
 def is_admin(user):
@@ -509,22 +542,25 @@ def selos(request, id_vendedor=None):
 
     
 @login_required
-def editar_vendas(request, data):
-    # Converte a data para o formato de data
+def editar_vendas(request, id_vendedor, data):
     data_venda = datetime.datetime.strptime(data, "%Y-%m-%d").date()
 
-    # Se for admin, pode editar todas as vendas desse dia. Senão, edita apenas as suas.
     if request.user.is_superuser:
-        vendas = Venda.objects.filter(data_venda=data_venda)
+        vendedor = get_object_or_404(User, id=id_vendedor)
     else:
-        vendas = Venda.objects.filter(data_venda=data_venda, vendedor=request.user)
+        vendedor = request.user
+
+    vendas = Venda.objects.filter(data_venda=data_venda, vendedor=vendedor)
 
     if not vendas.exists():
-        return redirect('registrar_venda')
-    
-    id_vendedor = None  # Variável para armazenar o ID do vendedor editado
+        url = reverse('registrar_venda')
+        query_string = urlencode({
+            'id_vendedora': id_vendedor or request.user.id,
+            'data': data  # <-- aqui vai a data formatada
+        })
+        full_url = f'{url}?{query_string}'
+        return redirect(full_url)
 
-    # Criação do formulário
     if request.method == "POST":
         for venda in vendas:
             quantidade = request.POST.get(f'quantidade_vendida_{venda.id}')
@@ -532,33 +568,23 @@ def editar_vendas(request, data):
                 venda.quantidade_vendida = int(quantidade)
                 venda.save()
 
-            # Verifica se o usuário quer excluir o produto
-            excluir_produto = request.POST.get(f'excluir_{venda.id}')
-            if excluir_produto == 'on':  # Se o checkbox de excluir foi marcado
+            if request.POST.get(f'excluir_{venda.id}') == 'on':
                 venda.delete()
-                messages.success(request, f"Produto {venda.produto.nome} excluído com sucesso!")
-                
-            # Guarda o id do vendedor da venda editada
-            id_vendedor = venda.vendedor.id
 
-        messages.success(request, "Vendas atualizadas com sucesso!")
-        
-        # Se for admin, redireciona para o 'selos' com o id do vendedor associado à venda alterada
-        if request.user.is_superuser and id_vendedor:
-            return redirect('selos', id_vendedor=id_vendedor)
-        else:
-            # Se não for admin, redireciona para o 'selos' padrão
-            return redirect('selos')
-    else:
-        # Caso não seja POST, cria o formulário com os dados existentes
-        form = EditarVendasForm()
+            messages.success(request, "Vendas atualizadas com sucesso!")
+            dia = data_venda.day  # extrai só o dia (1 a 31)
 
-    # Passa as vendas do dia para o template
+            if request.user.is_superuser:
+                return redirect(f"{reverse('selos', kwargs={'id_vendedor': id_vendedor})}?dia={dia}")
+            else:
+                return redirect(f"{reverse('selos')}?dia={dia}")
+
     return render(request, 'editar_vendas.html', {
-        'form': form, 
+        'form': EditarVendasForm(),
         'data': data,
-        'vendas': vendas,  # Passa as vendas para o template
-        'data_venda' : data_venda
+        'vendas': vendas,
+        'data_venda': data_venda,
+        'vendedor': vendedor
     })
 
 
@@ -579,3 +605,13 @@ class CustomPasswordResetView(PasswordResetView):
     
 def error_404_view(request, exception):
     return render(request, '404.html', status=404)
+
+@login_required
+def carregar_lojas_por_vendedora(request):
+    id_vendedora = request.GET.get('id_vendedora')
+    try:
+        vendedora = CustomUser.objects.get(id=id_vendedora, is_staff=False)
+        lojas = vendedora.lojas.all().values('id', 'nome', 'cidade')
+        return JsonResponse(list(lojas), safe=False)
+    except CustomUser.DoesNotExist:
+        return JsonResponse([], safe=False)

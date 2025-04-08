@@ -9,6 +9,7 @@
     <div class="header-center">
         {% if user.is_staff %}
             <a href="{% url 'home_adm' %}">HOME</a>
+            <a href="{% url 'registrar_venda' %}">CADASTRO DE SELOS</a>
             <a href="{% url 'relatorio_vendas' %}">RANKING DE PROMOTORAS</a>
         {% else %}
             <a href="{% url 'home_vendedor' %}">HOME</a>
