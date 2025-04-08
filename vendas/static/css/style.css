@@ -481,7 +481,7 @@ p {
 }
 
 tr.destaque {
-    background-color: #fff7c0; /* Amarelo claro */
+    background-color: #fff7c0 !important;
     font-weight: bold;
     transition: background-color 0.3s ease;
 }

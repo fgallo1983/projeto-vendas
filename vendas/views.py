@@ -267,15 +267,17 @@ def registrar_venda(request):
 
             if venda_existente:
                 messages.error(request, "Já existe uma venda deste produto para esta data.")
+                request.session['dia_destacado'] = venda.data_venda.day
                 redirect_url = (
                     reverse('selos', kwargs={'id_vendedor': vendedor.id})
                     if request.user.is_staff else reverse('selos')
                 )
                 return redirect(
-                    f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}&dia={venda.data_venda.day}"
+                    f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}"
                 )
 
             venda.save()
+            request.session['dia_destacado'] = venda.data_venda.day
             messages.success(request, "Venda registrada com sucesso!")
 
             redirect_url = (
@@ -283,7 +285,7 @@ def registrar_venda(request):
                 if request.user.is_staff else reverse('selos')
             )
             return redirect(
-                f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}&dia={venda.data_venda.day}"
+                f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}"
             )
     else:
         # Inicializa o form com data e vendedor (se estiverem no GET)
@@ -441,6 +443,7 @@ def selos(request, id_vendedor=None):
     ano = int(request.GET.get("ano", ano_atual))
     mes = int(request.GET.get("mes", mes_atual))
     dia = request.GET.get("dia")  # Dia pode ser opcional
+    dia_destacado = request.session.pop('dia_destacado', None)
 
     vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
 
@@ -537,6 +540,7 @@ def selos(request, id_vendedor=None):
             "vendedor": vendedor,
             "porcentagem_vendas": porcentagem_vendas,  
             "meta_restante": meta_restante,
+            "dia_destacado": dia_destacado,
         },
     )
 
@@ -564,20 +568,21 @@ def editar_vendas(request, id_vendedor, data):
     if request.method == "POST":
         for venda in vendas:
             quantidade = request.POST.get(f'quantidade_vendida_{venda.id}')
-            if quantidade:
+            if quantidade is not None:
                 venda.quantidade_vendida = int(quantidade)
                 venda.save()
 
             if request.POST.get(f'excluir_{venda.id}') == 'on':
                 venda.delete()
 
-            messages.success(request, "Vendas atualizadas com sucesso!")
-            dia = data_venda.day  # extrai só o dia (1 a 31)
+        messages.success(request, "Vendas atualizadas com sucesso!")
+        # dia = data_venda.day
+        request.session['dia_destacado'] = data_venda.day  # ← AQUI
 
-            if request.user.is_superuser:
-                return redirect(f"{reverse('selos', kwargs={'id_vendedor': id_vendedor})}?dia={dia}")
-            else:
-                return redirect(f"{reverse('selos')}?dia={dia}")
+        if request.user.is_superuser:
+            return redirect(f"{reverse('selos', kwargs={'id_vendedor': id_vendedor})}")
+        else:
+            return redirect(f"{reverse('selos')}")
 
     return render(request, 'editar_vendas.html', {
         'form': EditarVendasForm(),

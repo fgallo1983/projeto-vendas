@@ -145,10 +145,9 @@
                     <th class="coluna-editar">Editar</th>
                 </tr>
             </thead>
-            {% with dia_destacado=request.GET.dia|default_if_none:"" %}
             <tbody>
                 {% for dia, produtos_vendidos in vendas_por_dia.items %}
-                    <tr {% if dia|stringformat:"i" == dia_destacado %}class="destaque"{% endif %}>
+                <tr id="dia-{{ dia }}" {% if dia|stringformat:"i" == dia_destacado|stringformat:"i" %}class="destaque"{% endif %}>
                         <td data-label="Dia">{{ dia }}</td>
                         <td data-label="Semana">{{ dias_formatados|dict_get:dia }}</td>
                         {% for produto in produtos %}
@@ -173,7 +172,6 @@
                         </td>
                     </tr>
                 {% endfor %}
-            {% endwith %}
         
                 <tr>
                     <td colspan="2"><strong>Total em Peças</strong></td>
@@ -190,6 +188,14 @@
                     {% endfor %}
                     <td><strong>R$ {{ total_geral_valor|floatformat:2 }}</strong></td>
                 </tr>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const destacado = document.querySelector("tr.destaque");
+                        if (destacado) {
+                            destacado.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                    });
+                </script>
             </tbody>
         </table>
     </div> 
