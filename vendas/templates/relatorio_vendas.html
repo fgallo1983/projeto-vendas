@@ -82,7 +82,7 @@
 
         var nomesPromotoras = [
             {% for vendedor_id, dados in vendas_por_vendedor.items %}
-                "{{ dados.vendedor.username }}",
+                "{{ dados.vendedor.first_name }} {{ dados.vendedor.last_name}}",
             {% endfor %}
         ];
 
