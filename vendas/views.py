@@ -14,7 +14,7 @@ from django.utils.http import urlencode
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
 from .forms import VendaForm, RoteiroForm, EditarVendasForm
-from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor
+from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta
 from django.contrib.auth.views import PasswordResetView 
 from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, Loja
 
@@ -85,7 +85,19 @@ def home_vendedor(request):
     # 🔹 Calculamos comissão e obtemos valores atualizados
     total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
     
+        # 🔹 Faixa atual de meta
+    faixa_atual = obter_faixa_atual(total_geral_pecas)
+
+    # 🔹 Próxima meta
+    proxima_meta = obter_proxima_meta(total_geral_pecas)
+    
     meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
+    
+    # Supondo que todos os produtos tenham o mesmo valor base de comissão
+    preco_base = Produto.objects.first().valor if Produto.objects.exists() else 0
+    
+    # Se houver faixa atual, calcula o valor da comissão por peça
+    comissao_atual = preco_base + faixa_atual.acrescimo if faixa_atual else 0
     
     # Filtra as vendas de acordo com o mês e ano selecionados
     ranking_vendedores = Venda.objects.filter(
@@ -124,6 +136,10 @@ def home_vendedor(request):
         'meta_restante': meta_restante,
         'ranking_vendedores': ranking_vendedores,
         'vendas_mensais': vendas_mensais, 
+        'faixa_atual': faixa_atual,
+        'proxima_meta': proxima_meta,
+        'preco_base': preco_base,
+        'comissao_atual': comissao_atual,
     }
 
     return render(request, 'home_vendedor.html', context)
@@ -237,7 +253,6 @@ def registrar_venda(request):
     if request.user.is_staff:
         if id_vendedora:
             vendedor = get_object_or_404(CustomUser, id=id_vendedora, is_staff=False)
-        # Se não houver ID, o admin escolherá no form
     else:
         vendedor = request.user
 
@@ -245,50 +260,72 @@ def registrar_venda(request):
         form = VendaForm(request.POST, user=request.user)
 
         if form.is_valid():
-            venda = form.save(commit=False)
+            # Campos únicos fora do loop
+            data_venda = form.cleaned_data['data_venda']
+            loja = form.cleaned_data['loja']
 
             if request.user.is_staff:
-                vendedor = form.cleaned_data.get('vendedor')  # ← pega do form
+                vendedor = form.cleaned_data.get('vendedor')
                 if not vendedor:
                     messages.error(request, "Selecione uma vendedora.")
                     return render(request, "registrar_venda.html", {"form": form})
             else:
                 vendedor = request.user
 
-            venda.vendedor = vendedor
-            venda.valor = venda.quantidade_vendida * venda.produto.valor
+            # Recebe listas de produtos e quantidades
+            produtos = request.POST.getlist('produto')
+            quantidades = request.POST.getlist('quantidade_vendida')
 
-            # Verifica se já existe uma venda do mesmo produto na mesma data
-            venda_existente = Venda.objects.filter(
-                produto=venda.produto,
-                data_venda=venda.data_venda,
-                vendedor=vendedor
-            ).exists()
+            vendas_registradas = 0
+            erros = []
 
-            if venda_existente:
-                messages.error(request, "Já existe uma venda deste produto para esta data.")
-                request.session['dia_destacado'] = venda.data_venda.day
+            for produto_id, quantidade_str in zip(produtos, quantidades):
+                if not produto_id or not quantidade_str:
+                    continue  # Pula campos vazios
+
+                try:
+                    produto = Produto.objects.get(id=produto_id)
+                    quantidade = int(quantidade_str)
+                except (Produto.DoesNotExist, ValueError):
+                    erros.append("Produto inválido ou quantidade inválida.")
+                    continue
+
+                # Verifica se já existe venda desse produto na mesma data
+                venda_existente = Venda.objects.filter(
+                    produto=produto,
+                    data_venda=data_venda,
+                    vendedor=vendedor
+                ).exists()
+
+                if venda_existente:
+                    erros.append(f"O produto '{produto.nome}' já foi registrado nesse dia.")
+                    continue
+
+                # Cria e salva a venda
+                venda = Venda(
+                    produto=produto,
+                    quantidade_vendida=quantidade,
+                    data_venda=data_venda,
+                    loja=loja,
+                    vendedor=vendedor,
+                    valor=quantidade * produto.valor
+                )
+                venda.save()
+                vendas_registradas += 1
+
+            if vendas_registradas > 0:
+                messages.success(request, f"{vendas_registradas} venda(s) registrada(s) com sucesso!")
+                request.session['dia_destacado'] = data_venda.day
                 redirect_url = (
                     reverse('selos', kwargs={'id_vendedor': vendedor.id})
                     if request.user.is_staff else reverse('selos')
                 )
-                return redirect(
-                    f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}"
-                )
+                return redirect(f"{redirect_url}?ano={data_venda.year}&mes={data_venda.month}")
+            else:
+                for erro in erros:
+                    messages.error(request, erro)
 
-            venda.save()
-            request.session['dia_destacado'] = venda.data_venda.day
-            messages.success(request, "Venda registrada com sucesso!")
-
-            redirect_url = (
-                reverse('selos', kwargs={'id_vendedor': vendedor.id})
-                if request.user.is_staff else reverse('selos')
-            )
-            return redirect(
-                f"{redirect_url}?ano={venda.data_venda.year}&mes={venda.data_venda.month}"
-            )
     else:
-        # Inicializa o form com data e vendedor (se estiverem no GET)
         initial_data = {}
         if data_inicial:
             initial_data['data_venda'] = data_inicial
@@ -298,7 +335,6 @@ def registrar_venda(request):
         form = VendaForm(user=request.user, vendedor=vendedor, initial=initial_data)
 
     return render(request, "registrar_venda.html", {"form": form})
-
 # Verifica se o usuário é administrador
 def is_admin(user):
     return user.is_staff  # Apenas administradores terão acesso
@@ -511,14 +547,27 @@ def selos(request, id_vendedor=None):
             for d in vendas_por_dia.keys()
         }
         
-    # Calculando a porcentagem de vendas em relação à meta
-    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
-    porcentagem_vendas = round((total_geral_pecas / (meta_maxima-1)) * 100, 2) if meta_maxima else 0
-
-    porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
-    
     
     meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
+
+       # 🔹 Faixa atual de meta
+    faixa_atual = obter_faixa_atual(total_geral_pecas)
+
+    # 🔹 Próxima meta
+    proxima_meta = obter_proxima_meta(total_geral_pecas)
+    
+    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
+    
+    # Supondo que todos os produtos tenham o mesmo valor base de comissão
+    preco_base = Produto.objects.first().valor if Produto.objects.exists() else 0
+    
+    # Se houver faixa atual, calcula o valor da comissão por peça
+    comissao_atual = preco_base + faixa_atual.acrescimo if faixa_atual else 0
+    
+        # Calculando a porcentagem de vendas em relação à meta
+    porcentagem_vendas = round((total_geral_pecas / proxima_meta) * 100, 2) if proxima_meta else 0
+
+    porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
 
     return render(
         request,
@@ -541,6 +590,10 @@ def selos(request, id_vendedor=None):
             "porcentagem_vendas": porcentagem_vendas,  
             "meta_restante": meta_restante,
             "dia_destacado": dia_destacado,
+            'faixa_atual': faixa_atual,
+            'proxima_meta': proxima_meta,
+            'preco_base': preco_base,
+            'comissao_atual': comissao_atual,
         },
     )
 

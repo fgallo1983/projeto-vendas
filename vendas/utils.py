@@ -5,6 +5,8 @@ from django.db.models.functions import Concat
 from .models import Venda, Produto, MetaAcrescimo, CustomUser
 
 
+META_MINIMA_FIXA = 401  # Aqui fixamos a meta inicial, ignorando faixas abaixo
+
 def obter_acrescimo(total_pecas):
     """Retorna o acréscimo com base no total de peças vendidas."""
     faixas_acrescimo = MetaAcrescimo.objects.all()
@@ -50,46 +52,79 @@ def calcular_total_comissao(vendas):
     return total_geral_pecas, total_geral_valor
 
 def calcular_meta_restante(request):
-    """Calcula a meta restante para cada vendedora"""
-    
-    # Obtém o valor máximo da meta
-    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+    """Calcula a meta restante para as top vendedoras, ignorando a primeira faixa"""
 
-    # Obtém o mês e ano filtrados ou usa os valores padrão
     mes = int(request.GET.get('mes', datetime.datetime.now().month))
     ano = int(request.GET.get('ano', datetime.datetime.now().year))
 
-    # Filtra as vendas de acordo com o mês e ano selecionados
+    metas = list(MetaAcrescimo.objects.order_by('min_pecas'))[1:]  # Ignora a primeira linha
+
     ranking_vendedores = Venda.objects.filter(
-        data_venda__year=ano,  # Filtra pelo ano
-        data_venda__month=mes  # Filtra pelo mês
+        data_venda__year=ano,
+        data_venda__month=mes
     ).annotate(
         vendedor_nome=Concat('vendedor__first_name', Value(' '), 'vendedor__last_name')
-    ).values('vendedor_nome').annotate(
+    ).values('vendedor_nome', 'vendedor_id').annotate(
         total_vendido=Sum('quantidade_vendida')
-    ).order_by('-total_vendido')[:3]  # Pegamos apenas os 3 melhores
-    # Adicionamos a meta restante para cada vendedora
+    ).order_by('-total_vendido')[:3]
+
     for vendedor in ranking_vendedores:
-        vendedor["meta_restante"] = max((meta_maxima-1) - vendedor["total_vendido"], 0)
+        total_vendido = vendedor["total_vendido"]
+
+        meta_restante = 0
+        for meta in metas:
+            if total_vendido < meta.min_pecas:
+                meta_restante = meta.min_pecas - total_vendido
+                break
+
+        vendedor["meta_restante"] = meta_restante
 
     return ranking_vendedores
 
 def calcular_meta_vendedor(vendedor, mes, ano):
-    """Calcula a meta restante para uma vendedora em um determinado mês e ano"""
-    
-    # Obtém o valor máximo da meta
-    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+    """Calcula a quantidade restante para a próxima meta, ignorando a primeira faixa"""
 
-    # Obtém as vendas da vendedora no mês e ano especificados
     total_vendido = Venda.objects.filter(
         vendedor=vendedor, 
         data_venda__year=ano, 
         data_venda__month=mes
-    ).aggregate(
-        total_vendido=Sum('quantidade_vendida')
-    )["total_vendido"] or 0  # Se não houver vendas, retorna 0
-    
-    # Calcula a meta restante
-    meta_restante = max((meta_maxima - 1) - total_vendido, 0)
+    ).aggregate(total=Sum('quantidade_vendida'))["total"] or 0
 
-    return meta_restante
+    # Pega as faixas a partir da segunda (ignora a primeira)
+    metas = list(MetaAcrescimo.objects.order_by('min_pecas'))[1:]
+
+    for meta in metas:
+        if total_vendido < meta.min_pecas:
+            return meta.min_pecas - total_vendido
+
+    return 0  # Já bateu todas as metas relevantes
+
+def obter_faixa_atual(total_pecas):
+    """
+    Retorna a faixa de acréscimo correspondente à quantidade total de peças, ignorando faixas abaixo da meta mínima.
+    """
+    faixas = MetaAcrescimo.objects.filter(min_pecas__gte=META_MINIMA_FIXA).order_by("min_pecas")
+
+    for faixa in faixas:
+        if faixa.max_pecas:
+            if faixa.min_pecas <= total_pecas <= faixa.max_pecas:
+                return faixa
+        else:
+            if total_pecas >= faixa.min_pecas:
+                return faixa
+    return None  # Ainda não atingiu a faixa inicial
+
+
+def obter_proxima_meta(total_pecas):
+    """
+    Retorna o valor (min_pecas) da próxima meta a ser atingida, considerando que a meta começa em 401.
+    """
+    faixas = MetaAcrescimo.objects.filter(min_pecas__gte=META_MINIMA_FIXA).order_by("min_pecas")
+
+    for faixa in faixas:
+        if total_pecas < faixa.min_pecas:
+            return faixa.min_pecas
+        elif faixa.max_pecas and total_pecas <= faixa.max_pecas:
+            return faixa.max_pecas + 1
+
+    return None  # Já bateu a última faixa

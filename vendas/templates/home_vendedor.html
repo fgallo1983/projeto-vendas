@@ -15,10 +15,29 @@
                 <p>R$ {{ total_geral_valor|floatformat:2 }}</p>
             </div>
             <div class="indicador">
-                <h3>Meta Restante</h3>
+                <h3>Quantidade Restante para Próxima Meta</h3>
                 <p>{{ meta_restante }}</p>
             </div>
         </div>
+            <div class="indicador">
+                <h3>Faixa Atual</h3>
+                {% if faixa_atual %}
+                <p>
+                    R$ {{ comissao_atual|floatformat:2 }} por peça<br>
+                    (mínimo de {{ faixa_atual.min_pecas }} peças)
+                </p>
+                {% else %}
+                    <p>Nenhuma meta atingida ainda</p>
+                {% endif %}
+            </div>
+            <div class="indicador">
+                <h3>Próxima Meta</h3>
+                {% if proxima_meta %}
+                    <p>{{ proxima_meta }} peças</p>
+                {% else %}
+                    <p>Todas as metas já foram batidas</p>
+                {% endif %}
+            </div>
     </div>
 
     <br><br>
@@ -37,65 +56,82 @@
                 <label for="ano">Ano:</label>
                 <select name="ano" id="ano">
                     {% for ano in anos_disponiveis %}
-                    <option value="{{ ano }}" {% if ano == ano_selecionado|default:ano %}selected{% endif %}>
-                        {{ ano }}
-                    </option>
-                {% endfor %}
+                        <option value="{{ ano }}" {% if ano == ano_selecionado|default:ano %}selected{% endif %}>
+                            {{ ano }}
+                        </option>
+                    {% endfor %}
                 </select>
                 <button type="submit">Aplicar Filtro</button>
             </form>
         </div>
 
-
-       <!-- Tabela à direita -->
-       <div class="grafico-ranking">
-        <div class="tabela">
-            <h3>Ranking de Promotoras</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Vendedora</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vendedor in ranking_vendedores %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ vendedor.vendedor_nome }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5">Nenhuma venda encontrada.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Tabela à direita -->
+        <div class="grafico-ranking">
+            <div class="tabela">
+                <h3>Ranking de Promotoras</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Vendedora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendedor in ranking_vendedores %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ vendedor.vendedor_nome }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">Nenhuma venda encontrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <div class="grafico" id="grafico-mensal">
-        <h3>Vendas Mensais</h3>
-        <canvas id="chartMensal"></canvas>
+        <div class="grafico" id="grafico-mensal">
+            <h3>Vendas Mensais</h3>
+            <canvas id="chartMensal"></canvas>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     var ctxMensal = document.getElementById('chartMensal').getContext('2d');
-    
-    // Cores para cada gráfico
-    var corMensal = '#6f42c1';   // Roxo
 
-    var vendasMensais = {{ vendas_mensais|safe }};  // Recebe os valores reais do Django
+    var corMensal = '#6f42c1'; // Roxo
+    var vendasMensais = {{ vendas_mensais|safe }};
+
     var chartMensal = new Chart(ctxMensal, {
         type: 'bar',
         data: {
             labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
             datasets: [{
                 label: 'Vendas Mensais',
-                data: vendasMensais, // Usa os valores reais
+                data: vendasMensais,
                 backgroundColor: corMensal
             }]
         }
     });
 </script>
+
+<style>
+    .metas {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .meta-box {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        padding: 15px;
+        width: 32%;
+        text-align: center;
+        border-radius: 8px;
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
 {% endblock %}

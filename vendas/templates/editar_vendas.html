@@ -1,34 +1,43 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="form-container">
-    <div class="editar-venda-container">
-    <h2>Editar Vendas - {{ data_venda }}</h2>
-
-    {% if vendas %}
+    <div class="registrar-venda-container">
+        <h2>Editar Vendas do dia {{ data_venda|date:"d/m/Y" }}</h2><br>
         <form method="POST">
             {% csrf_token %}
-            
+
             {% for venda in vendas %}
-                <div class="venda">
-                    <p><strong>Produto:</strong> {{ venda.produto.nome }}</p>
-                    <p><strong>Quantidade Vendida:</strong> {{ venda.quantidade_vendida }}</p>
-                    
-                    <!-- Cria um campo de input para edição da quantidade -->
-                    <label for="quantidade_vendida_{{ venda.id }}">Nova Quantidade:</label>
-                    <input type="number" id="quantidade_vendida_{{ venda.id }}" name="quantidade_vendida_{{ venda.id }}" value="{{ venda.quantidade_vendida }}" min="1">
-                    
-                    <!-- Adiciona um checkbox para excluir o produto -->
-                    <label for="excluir_{{ venda.id }}">Excluir Produto</label>
-                    <input type="checkbox" id="excluir_{{ venda.id }}" name="excluir_{{ venda.id }}">
+                <div class="venda-box" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #f9f9f9;">
+                    <div style="margin-bottom: 10px;">
+                        <strong>Produto:</strong> {{ venda.produto.nome }}<br>
+                        <strong>Loja:</strong> {{ venda.loja.nome }}
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="quantidade_vendida_{{ venda.id }}">Quantidade:</label><br>
+                        <input type="number" name="quantidade_vendida_{{ venda.id }}" id="quantidade_vendida_{{ venda.id }}"
+                            value="{{ venda.quantidade_vendida }}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" name="excluir_{{ venda.id }}" style="margin-right: 8px;">
+                            Excluir esta venda
+                        </label>
+                    </div>
+
+                    <div>
+                        <strong>Valor Total:</strong> R$ {{ venda.valor|floatformat:2 }}
+                    </div>
                 </div>
+            {% empty %}
+                <p>Nenhuma venda encontrada para este dia.</p>
             {% endfor %}
-            
+
             <button type="submit">Salvar Alterações</button>
         </form>
-    {% else %}
-        <p>Nenhuma venda encontrada nesta data. <a href="{% url 'registrar_venda' %}">Cadastrar nova venda</a></p>
-    {% endif %}
     </div>
 </div>
 {% endblock %}

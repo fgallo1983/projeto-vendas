@@ -63,11 +63,32 @@
                 <p>R$ {{ total_geral_valor|floatformat:2 }}</p>
             </div>
             <div class="indicador">
-                <h3>Meta Restante</h3>
+                <h3>Quantidade Restante para Próxima Meta</h3>
                 <p>{{ meta_restante }}</p>
             </div>
-        </div>
-    </center>
+        
+
+            <div class="indicador">
+                <h3>Faixa Atual</h3>
+                {% if faixa_atual %}
+                <p>
+                    R$ {{ comissao_atual|floatformat:2 }} por peça<br>
+                    (mínimo de {{ faixa_atual.min_pecas }} peças)
+                </p>
+                {% else %}
+                    <p>Nenhuma meta atingida ainda</p>
+                {% endif %}
+            </div>
+            <div class="indicador">
+                <h3>Próxima Meta</h3>
+                {% if proxima_meta %}
+                    <p>{{ proxima_meta }} peças</p>
+                {% else %}
+                    <p>Todas as metas já foram batidas</p>
+                {% endif %}
+            </div>
+    </div>
+</center>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>  <!-- Versão do Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>  <!-- Versão do plugin -->
   

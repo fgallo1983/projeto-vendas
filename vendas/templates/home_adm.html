@@ -2,25 +2,7 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="dashboard-header">
-        <div class="indicadores">
-            <div class="indicador">
-                <h3>Total de Peças Vendidas</h3>
-                <p>{{ total_pecas }}</p>
-            </div>
-            <div class="indicador">
-                <h3>Comissão Total</h3>
-                <p>R$ {{ total_comissao|floatformat:2 }}</p>
-            </div>
-            <div class="indicador">
-                <h3>Meta</h3>
-                <div class="progress-bar">
-                    <div class="progress" style="width: {{ porcentagem_meta }}%"></div>
-                </div>
-                <p>{{ porcentagem_meta|floatformat:1 }}% atingida</p>
-            </div>
-        </div>
-    </div>
+
 
 <br><br>
 
