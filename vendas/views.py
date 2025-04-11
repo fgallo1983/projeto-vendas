@@ -479,13 +479,16 @@ def selos(request, id_vendedor=None):
 
     ano = int(request.GET.get("ano", ano_atual))
     mes = int(request.GET.get("mes", mes_atual))
-    dia = request.GET.get("dia")  # Dia pode ser opcional
+    dia = request.GET.get("dia")
     dia_destacado = request.session.pop('dia_destacado', None)
 
-    vendas = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
+    # 🔸 Vendas do mês inteiro (para indicadores)
+    vendas_mes = Venda.objects.filter(vendedor=vendedor, data_venda__year=ano, data_venda__month=mes)
 
+    # 🔸 Vendas filtradas por dia (para a tabela)
+    vendas_tabela = vendas_mes
     if dia:
-        vendas = vendas.filter(data_venda__day=int(dia))
+        vendas_tabela = vendas_mes.filter(data_venda__day=int(dia))
 
     produtos = Produto.objects.all()
 
@@ -494,38 +497,27 @@ def selos(request, id_vendedor=None):
     else:
         vendas_por_dia = {d: {produto.id: 0 for produto in produtos} for d in range(1, calendar.monthrange(ano, mes)[1] + 1)}
 
-    for venda in vendas:
+    for venda in vendas_tabela:
         vendas_por_dia[venda.data_venda.day][venda.produto.id] += venda.quantidade_vendida
 
-    # 🔹 Mantemos total_por_produto para ser usado no template
     total_por_produto = {produto.id: 0 for produto in produtos}
-
-    for venda in vendas:
+    for venda in vendas_tabela:
         total_por_produto[venda.produto.id] += venda.quantidade_vendida
 
-    # 🔹 Calculamos comissão e obtemos valores atualizados
-    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
+    # 🔹 Cálculo dos totais com base nas vendas do mês
+    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas_mes)
 
-    # 🔹 Aplicamos o cálculo correto do valor por produto, considerando acréscimos
     valor_por_produto = {}
-
-    # 🔹 Busca o acréscimo correto no banco de dados
     acrescimo = obter_acrescimo(total_geral_pecas)
-
-    # Obtém a menor meta cadastrada no banco
     meta_minima = MetaAcrescimo.objects.aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
 
     for produto in produtos:
         preco_base = produto.valor or 0
-
-        # Se ainda não atingiu a meta mínima, mantém o preço base
         if total_geral_pecas < meta_minima:
             preco_final = preco_base
         else:
-            # Apenas produtos com preço base <= 1.00 recebem acréscimo
-            preco_final = preco_base + acrescimo if preco_base <= 1.00 and produto.id !=7 else preco_base
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 and produto.id != 7 else preco_base
 
-        # Calcula o valor total por produto aplicando a nova regra
         valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final
 
     DIAS_SEMANA = {
@@ -547,27 +539,15 @@ def selos(request, id_vendedor=None):
             d: DIAS_SEMANA.get(datetime.date(ano, mes, d).strftime("%A"), "Desconhecido")
             for d in vendas_por_dia.keys()
         }
-        
-    
-    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
 
-       # 🔹 Faixa atual de meta
+    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
     faixa_atual = obter_faixa_atual(total_geral_pecas)
-
-    # 🔹 Próxima meta
     proxima_meta = obter_proxima_meta(total_geral_pecas)
-    
-    meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
-    
-    # Supondo que todos os produtos tenham o mesmo valor base de comissão
-    preco_base = Produto.objects.first().valor if Produto.objects.exists() else 0
-    
-    # Se houver faixa atual, calcula o valor da comissão por peça
-    comissao_atual = preco_base + faixa_atual.acrescimo if faixa_atual else 0
-    
-        # Calculando a porcentagem de vendas em relação à meta
-    porcentagem_vendas = round((total_geral_pecas / proxima_meta) * 100, 2) if proxima_meta else 0
 
+    preco_base = Produto.objects.first().valor if Produto.objects.exists() else 0
+    comissao_atual = preco_base + faixa_atual.acrescimo if faixa_atual else 0
+
+    porcentagem_vendas = round((total_geral_pecas / proxima_meta) * 100, 2) if proxima_meta else 0
     porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
 
     return render(
@@ -580,21 +560,21 @@ def selos(request, id_vendedor=None):
             "meses_disponiveis": range(1, 13),
             "vendas_por_dia": vendas_por_dia,
             "produtos": produtos,
-            "total_por_produto": total_por_produto,  # ✅ Restaurado para evitar erro no template
-            "valor_por_produto": valor_por_produto,  # ✅ Agora leva em conta os acréscimos corretamente!
+            "total_por_produto": total_por_produto,
+            "valor_por_produto": valor_por_produto,
             "total_geral_pecas": total_geral_pecas,
             "total_geral_valor": total_geral_valor,
             "dias_formatados": dias_formatados,
             "ano": ano,
             "mes": mes,
             "vendedor": vendedor,
-            "porcentagem_vendas": porcentagem_vendas,  
+            "porcentagem_vendas": porcentagem_vendas,
             "meta_restante": meta_restante,
             "dia_destacado": dia_destacado,
-            'faixa_atual': faixa_atual,
-            'proxima_meta': proxima_meta,
-            'preco_base': preco_base,
-            'comissao_atual': comissao_atual,
+            "faixa_atual": faixa_atual,
+            "proxima_meta": proxima_meta,
+            "preco_base": preco_base,
+            "comissao_atual": comissao_atual,
         },
     )
 
