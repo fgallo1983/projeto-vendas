@@ -290,15 +290,16 @@ def registrar_venda(request):
                     erros.append("Produto inválido ou quantidade inválida.")
                     continue
 
-                # Verifica se já existe venda desse produto na mesma data
+                # Verifica se já existe venda desse produto na mesma data e loja
                 venda_existente = Venda.objects.filter(
                     produto=produto,
                     data_venda=data_venda,
-                    vendedor=vendedor
+                    vendedor=vendedor,
+                    loja=loja  
                 ).exists()
 
                 if venda_existente:
-                    erros.append(f"O produto '{produto.nome}' já foi registrado nesse dia.")
+                    erros.append(f"O produto '{produto.nome}' já foi registrado nesse dia nesta loja. Use o editar vendas no relatório.")
                     continue
 
                 # Cria e salva a venda
@@ -494,7 +495,7 @@ def selos(request, id_vendedor=None):
         vendas_por_dia = {d: {produto.id: 0 for produto in produtos} for d in range(1, calendar.monthrange(ano, mes)[1] + 1)}
 
     for venda in vendas:
-        vendas_por_dia[venda.data_venda.day][venda.produto.id] = venda.quantidade_vendida
+        vendas_por_dia[venda.data_venda.day][venda.produto.id] += venda.quantidade_vendida
 
     # 🔹 Mantemos total_por_produto para ser usado no template
     total_por_produto = {produto.id: 0 for produto in produtos}
@@ -522,7 +523,7 @@ def selos(request, id_vendedor=None):
             preco_final = preco_base
         else:
             # Apenas produtos com preço base <= 1.00 recebem acréscimo
-            preco_final = preco_base + acrescimo if preco_base <= 1.00 else preco_base
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 and produto.id !=7 else preco_base
 
         # Calcula o valor total por produto aplicando a nova regra
         valor_por_produto[produto.id] = total_por_produto[produto.id] * preco_final

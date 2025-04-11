@@ -30,7 +30,7 @@ class Venda(models.Model):
     data_venda = models.DateField()
 
     class Meta:
-        unique_together = ('produto', 'vendedor', 'data_venda')  # Impede vendas duplicadas do mesmo produto na mesma data
+        unique_together = ('produto', 'vendedor', 'data_venda', 'loja')
 
     def __str__(self):
         return f"{self.produto.nome} - {self.quantidade_vendida} unidades - {self.data_venda}"

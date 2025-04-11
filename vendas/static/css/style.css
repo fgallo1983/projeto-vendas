@@ -684,6 +684,10 @@ label {
     display: block;  /* Garante que o canvas seja tratado como um bloco */
 }
 
+.produtos-container {
+    background: #fff;
+}
+
 /* Adicionando regra para garantir que a largura máxima de 1400px seja respeitada */
 @media (max-width: 1400px) {
     .dashboard-container {

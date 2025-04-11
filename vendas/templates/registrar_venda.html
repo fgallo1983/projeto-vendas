@@ -87,15 +87,34 @@
         }
     });
 
-    function adicionarProduto() {
-        const container = document.getElementById('produtos-container');
-        const itemOriginal = container.querySelector('.produto-item');
-        const novoItem = itemOriginal.cloneNode(true);
-
-        // Limpa os valores clonados
-        novoItem.querySelectorAll('select, input').forEach(el => el.value = '');
-
-        container.appendChild(novoItem);
-    }
-</script>
+        function adicionarProduto() {
+            const container = document.getElementById('produtos-container');
+            const itemOriginal = container.querySelector('.produto-item');
+            const novoItem = itemOriginal.cloneNode(true);
+    
+            // Limpa os valores clonados
+            novoItem.querySelectorAll('select, input').forEach(el => el.value = '');
+    
+            // Cria o botão de remover
+            const botaoRemover = document.createElement('button');
+            botaoRemover.type = 'button';
+            botaoRemover.innerText = 'Remover';
+            botaoRemover.style.marginLeft = '10px';
+            botaoRemover.style.backgroundColor = '#dc3545';
+            botaoRemover.style.color = '#fff';
+            botaoRemover.style.border = 'none';
+            botaoRemover.style.padding = '4px 8px';
+            botaoRemover.style.borderRadius = '4px';
+            botaoRemover.onclick = function () {
+                container.removeChild(novoItem);
+            };
+    
+            // Só adiciona o botão se ainda não existir
+            if (!novoItem.querySelector('button')) {
+                novoItem.appendChild(botaoRemover);
+            }
+    
+            container.appendChild(novoItem);
+        }
+    </script>
 {% endblock %}
