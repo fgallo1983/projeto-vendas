@@ -367,6 +367,40 @@ p {
     margin: 0 auto; /* Centraliza a div dentro do container */
 }
 
+/* Estilo para destacar o contêiner de produtos */
+#produtos-container {
+    background-color: #ffffff; /* Fundo branco para destacar */
+    border: 1px solid #ddd;    /* Borda sutil */
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+/* Estilo individual para cada item de produto */
+.produto-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f1f1f1;  /* Fundo levemente cinza */
+    border-radius: 5px;
+}
+
+.botao-remover {
+    margin-left: auto;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.botao-remover:hover {
+    background-color: #c82333;
+}
 
 /* Estilo específico para a página Editar Venda */
 .editar-venda-container {

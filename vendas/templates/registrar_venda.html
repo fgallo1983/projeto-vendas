@@ -87,34 +87,36 @@
         }
     });
 
-        function adicionarProduto() {
-            const container = document.getElementById('produtos-container');
-            const itemOriginal = container.querySelector('.produto-item');
-            const novoItem = itemOriginal.cloneNode(true);
+    function adicionarProduto() {
+        const container = document.getElementById('produtos-container');
+        const ultimosCampos = container.lastElementChild;
     
-            // Limpa os valores clonados
-            novoItem.querySelectorAll('select, input').forEach(el => el.value = '');
+        const selectProduto = ultimosCampos.querySelector('select');
+        const inputQuantidade = ultimosCampos.querySelector('input');
     
-            // Cria o botão de remover
-            const botaoRemover = document.createElement('button');
-            botaoRemover.type = 'button';
-            botaoRemover.innerText = 'Remover';
-            botaoRemover.style.marginLeft = '10px';
-            botaoRemover.style.backgroundColor = '#dc3545';
-            botaoRemover.style.color = '#fff';
-            botaoRemover.style.border = 'none';
-            botaoRemover.style.padding = '4px 8px';
-            botaoRemover.style.borderRadius = '4px';
-            botaoRemover.onclick = function () {
-                container.removeChild(novoItem);
-            };
-    
-            // Só adiciona o botão se ainda não existir
-            if (!novoItem.querySelector('button')) {
-                novoItem.appendChild(botaoRemover);
-            }
-    
-            container.appendChild(novoItem);
+        if (!selectProduto.value || !inputQuantidade.value) {
+            alert('Preencha o produto e a quantidade antes de adicionar outro.');
+            return;
         }
+    
+        // Clona o primeiro item como base
+        const novoItem = ultimosCampos.cloneNode(true);
+    
+        // Limpa os valores dos campos no novo item
+        novoItem.querySelector('select').selectedIndex = 0;
+        novoItem.querySelector('input').value = '';
+    
+        // Cria botão de remover
+        const botaoRemover = document.createElement('button');
+        botaoRemover.type = 'button';
+        botaoRemover.innerText = 'Remover';
+        botaoRemover.classList.add('botao-remover');
+        botaoRemover.onclick = function () {
+            container.removeChild(novoItem);
+        };
+    
+        novoItem.appendChild(botaoRemover);
+        container.appendChild(novoItem);
+    }
     </script>
 {% endblock %}
