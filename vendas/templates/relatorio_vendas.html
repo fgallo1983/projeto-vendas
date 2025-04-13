@@ -79,21 +79,40 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var ctx = document.getElementById("graficoVendas").getContext("2d");
-
+    
         var nomesPromotoras = [
             {% for vendedor_id, dados in vendas_por_vendedor.items %}
-                "{{ dados.vendedor.first_name }} {{ dados.vendedor.last_name}}",
+                "{{ dados.vendedor.first_name }} {{ dados.vendedor.last_name }}",
             {% endfor %}
         ];
-
+    
         var vendasPromotoras = [
             {% for vendedor_id, dados in vendas_por_vendedor.items %}
                 {{ dados.total_geral_pecas }},
             {% endfor %}
         ];
-
-        var metaMaxima = {{ meta_maxima }};
-
+    
+        // Pegamos todas as metas relevantes do contexto (valores_metas)
+        var metasRelevantes = [
+            {% for meta in valores_metas %}
+                {{ meta }},
+            {% endfor %}
+        ];
+    
+        // Geramos um dataset para cada meta
+        var metasDatasets = metasRelevantes.map(function(meta, index) {
+            return {
+                label: "Meta " + meta + " peças",
+                data: Array(nomesPromotoras.length).fill(meta),
+                type: "line",
+                borderColor: `hsl(${index * 60}, 70%, 50%)`,
+                borderWidth: 1.5,
+                borderDash: [5, 5],
+                fill: false,
+                pointRadius: 0,
+            };
+        });
+    
         new Chart(ctx, {
             type: "bar",
             data: {
@@ -105,15 +124,7 @@
                         backgroundColor: "rgba(111, 66, 193, 0.8)",
                         borderWidth: 1
                     },
-                    {
-                        label: "Meta",
-                        data: Array(nomesPromotoras.length).fill(metaMaxima),
-                        type: "line",
-                        borderColor: "red",
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 0,
-                    }
+                    ...metasDatasets
                 ]
             },
             options: {
@@ -121,12 +132,25 @@
                 maintainAspectRatio: false,
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Peças vendidas'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
                     }
                 }
             }
         });
     });
-</script>
+    </script>
 
 {% endblock %}

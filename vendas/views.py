@@ -352,6 +352,10 @@ def relatorio_vendas(request):
 
     # Obtém a meta máxima definida no sistema
     meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+    
+    # Lista ordenada com todas as metas (exceto a primeira, como no cálculo de metas)
+    metas_relevantes = list(MetaAcrescimo.objects.order_by("min_pecas"))[1:]
+    valores_metas = [meta.min_pecas for meta in metas_relevantes]
 
     # Agrupamento por vendedor
     vendas_por_vendedor = {}
@@ -410,6 +414,7 @@ def relatorio_vendas(request):
         "mes": mes,
         'meses_disponiveis': meses_disponiveis,
         'anos_disponiveis': anos_disponiveis,
+        "valores_metas": valores_metas,
     })
 
 
