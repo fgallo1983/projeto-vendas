@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container" style="max-width: 1400px;">
+    <div class="registrar-venda-container">
+    <h2>Editar Vendedora - {{ vendedora.first_name }} {{ vendedora.last_name }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <h4>Dados da Vendedora</h4>
+        {{ form.as_p }}
+        <br>
+        <hr>
+        <br>
+        <h4>Atualizar Senha</h4>
+        {{ senha_form.as_p }}
+
+        <button type="submit" class="btn-acao editar">Salvar Alterações</button>
+        <a href="{% url 'listar_vendedoras' %}" class="btn-acao">Cancelar</a>
+    </form>
+</div>
+</div>
+{% endblock %}

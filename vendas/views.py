@@ -4,7 +4,7 @@ from collections import defaultdict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth import login, logout, get_user_model
 from django.db.models import Sum, Min, Max, Value
 from django.db.models.functions import Concat
@@ -13,7 +13,7 @@ from django.utils.timezone import now
 from django.utils.http import urlencode
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
-from .forms import VendaForm, RoteiroForm, EditarVendasForm
+from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm
 from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta
 from django.contrib.auth.views import PasswordResetView 
 from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, Loja
@@ -659,3 +659,41 @@ def carregar_lojas_por_vendedora(request):
         return JsonResponse(list(lojas), safe=False)
     except CustomUser.DoesNotExist:
         return JsonResponse([], safe=False)
+    
+@login_required
+def listar_vendedoras(request):
+    vendedoras = CustomUser.objects.filter(is_staff=False).order_by('first_name')
+    return render(request, "listar_vendedoras.html", {"vendedoras": vendedoras})
+
+@login_required
+def alternar_status_vendedora(request, pk):
+    vendedora = get_object_or_404(CustomUser, pk=pk, is_staff=False)
+    vendedora.is_active = not vendedora.is_active
+    vendedora.save()
+    messages.success(request, "Status atualizado com sucesso.")
+    return redirect("listar_vendedoras")
+
+@login_required
+def editar_vendedora(request, pk):
+    vendedora = get_object_or_404(CustomUser, pk=pk, is_staff=False)
+    form = VendedoraForm(request.POST or None, instance=vendedora)
+    senha_form = OptionalSetPasswordForm(user=vendedora, data=request.POST or None, prefix="senha")
+
+    if request.method == "POST":
+        form_ok = form.is_valid()
+        senha_ok = senha_form.is_valid()
+
+        if form_ok and senha_ok:
+            form.save()
+            # Só salva senha se foi preenchida (a lógica já está no form)
+            senha_form.save()
+            messages.success(request, "Vendedora atualizada com sucesso.")
+            return redirect("listar_vendedoras")
+        else:
+            messages.error(request, "Erro ao atualizar os dados. Verifique os campos.")
+
+    return render(request, "editar_vendedora.html", {
+        "form": form,
+        "senha_form": senha_form,
+        "vendedora": vendedora,
+    })

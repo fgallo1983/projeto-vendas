@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="form-container" style="max-width: 1400px;">
+    <h2 style="margin-bottom: 20px;">Lista de Promotoras</h2>
+
+    {% if messages %}
+    <div class="mensagens">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+    <div class="tabela-responsiva">
+        <table class="tabela">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Lojas</th>
+                    <th>Status</th>
+                    <th colspan="2">Editar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vendedoras %}
+                <tr>
+                    <td>{{ v.first_name }} {{ v.last_name }}</td>
+                    <td>{{ v.email }}</td>
+                    <td>
+                        {% for loja in v.lojas.all %}
+                            {{ loja.nome }} - {{ loja.cidade }}<br>{% if not forloop.last %}{% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <form id="form-status-{{ v.id }}" method="POST" action="{% url 'alternar_status_vendedora' v.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <a href="#" onclick="confirmarStatus('{{ v.id }}', '{{ v.first_name }}')">
+                                {% if v.is_active %}
+                                    <img src="{% static 'images/sinal-de-visto.png' %}" alt="Ativo" width="20">
+                                {% else %}
+                                    <img src="{% static 'images/botao-x.png' %}" alt="Inativo" width="15">
+                                {% endif %}
+                            </a>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'editar_vendedora' v.id %}" class="btn-acao editar">
+                            <img src="{% static 'images/btn-edit.png' %}" alt="Logo" width="20"></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">Nenhuma vendedora cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+</div>
+<script>
+    function confirmarStatus(vendedoraId, nome) {
+        const confirmar = confirm(`Deseja realmente alterar o status da vendedora ${nome}?`);
+        if (confirmar) {
+            document.getElementById(`form-status-${vendedoraId}`).submit();
+        }
+    }
+</script>
+{% endblock %}
