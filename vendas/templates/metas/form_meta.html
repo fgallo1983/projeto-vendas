@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container" style="max-width: 1400px;">
+<h2>{{ titulo }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn-acao salvar">Salvar</button>
+    <a href="{% url 'listar_metas' %}" class="btn-acao">Cancelar</a>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="form-container" style="max-width: 1400px;">
+<h2>Metas e Acréscimos (Padrão)</h2>
+
+<a href="{% url 'adicionar_meta' %}" class="btn-acao">Adicionar Faixa</a>
+
+<table class="tabela">
+    <thead>
+        <tr>
+            <th>Mínimo de Peças</th>
+            <th>Máximo de Peças</th>
+            <th>Acréscimo (R$)</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for meta in metas %}
+        <tr>
+            <td>{{ meta.min_pecas }}</td>
+            <td>{% if meta.max_pecas %}{{ meta.max_pecas }}{% else %}+{% endif %}</td>
+            <td>R$ {{ meta.acrescimo|floatformat:2 }}</td>
+            <td>
+                <a href="{% url 'editar_meta' meta.id %}" class="btn-acao editar">Editar</a>
+                <a href="{% url 'excluir_meta' meta.id %}" class="btn-acao excluir" onclick="return confirm('Tem certeza que deseja excluir esta faixa?')">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Nenhuma faixa cadastrada.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

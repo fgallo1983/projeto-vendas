@@ -13,10 +13,10 @@ from django.utils.timezone import now
 from django.utils.http import urlencode
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
-from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm
-from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta
 from django.contrib.auth.views import PasswordResetView 
-from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, Loja
+from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm
+from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta
+from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo
 
 User = get_user_model()
 
@@ -697,3 +697,40 @@ def editar_vendedora(request, pk):
         "senha_form": senha_form,
         "vendedora": vendedora,
     })
+    
+@login_required
+def listar_metas(request):
+    metas = MetaAcrescimo.objects.all()
+    return render(request, "metas/listar_metas.html", {"metas": metas})
+
+@login_required
+def adicionar_meta(request):
+    if request.method == "POST":
+        form = MetaAcrescimoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Meta adicionada com sucesso.")
+            return redirect("listar_metas")
+    else:
+        form = MetaAcrescimoForm()
+    return render(request, "metas/form_meta.html", {"form": form, "titulo": "Adicionar Meta"})
+
+@login_required
+def editar_meta(request, meta_id):
+    meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+    if request.method == "POST":
+        form = MetaAcrescimoForm(request.POST, instance=meta)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Meta atualizada com sucesso.")
+            return redirect("listar_metas")
+    else:
+        form = MetaAcrescimoForm(instance=meta)
+    return render(request, "metas/form_meta.html", {"form": form, "titulo": "Editar Meta"})
+
+@login_required
+def excluir_meta(request, meta_id):
+    meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+    meta.delete()
+    messages.success(request, "Meta excluída com sucesso.")
+    return redirect("listar_metas")
