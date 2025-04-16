@@ -3,7 +3,7 @@ from .models import Produto, Loja, Venda, ArquivoVendedor, CustomUser
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 from django.db.models import Sum  # Importando o Sum para agregação
-from .models import MetaAcrescimo
+from .models import MetaAcrescimo, MetaVendedora
 
 
 # Classe personalizada para o painel de administração
@@ -88,3 +88,10 @@ class MetaAcrescimoAdmin(admin.ModelAdmin):
 
 # Registra MetaAcrescimo no admin personalizado
 admin_site.register(MetaAcrescimo, MetaAcrescimoAdmin)
+
+class MetaVendedoraAdmin(admin.ModelAdmin):
+    list_display = ('vendedora', 'min_pecas', 'max_pecas', 'acrescimo')
+    list_filter = ('vendedora',)
+    search_fields = ('vendedora__first_name', 'vendedora__last_name', 'vendedora__email')
+
+admin_site.register(MetaVendedora, MetaVendedoraAdmin)

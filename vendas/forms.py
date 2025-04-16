@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from vendas.models import Venda, Produto, Loja, ArquivoVendedor, CustomUser, MetaAcrescimo
+from vendas.models import Venda, Produto, Loja, ArquivoVendedor, CustomUser, MetaAcrescimo, MetaVendedora
 import datetime
 
 
@@ -71,6 +71,18 @@ class MetaAcrescimoForm(forms.ModelForm):
     class Meta:
         model = MetaAcrescimo
         fields = ["min_pecas", "max_pecas", "acrescimo"]
+        
+class MetaVendedoraForm(forms.ModelForm):
+    class Meta:
+        model = MetaVendedora
+        fields = ["vendedora", "min_pecas", "max_pecas", "acrescimo"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["vendedora"].queryset = CustomUser.objects.filter(is_staff=False).order_by("first_name")
+        
+        if self.instance and self.instance.pk:
+            self.fields["vendedora"].disabled = True
 
 class OptionalSetPasswordForm(forms.Form):
     new_password1 = forms.CharField(

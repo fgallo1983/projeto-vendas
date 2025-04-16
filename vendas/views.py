@@ -14,9 +14,9 @@ from django.utils.http import urlencode
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.views import PasswordResetView 
-from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm
-from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta
-from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo
+from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm, MetaVendedoraForm
+from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta, obter_acrescimo
+from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, MetaVendedora
 
 User = get_user_model()
 
@@ -86,10 +86,10 @@ def home_vendedor(request):
     total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas)
     
         # 🔹 Faixa atual de meta
-    faixa_atual = obter_faixa_atual(total_geral_pecas)
+    faixa_atual = obter_faixa_atual(total_geral_pecas, vendedor)
 
     # 🔹 Próxima meta
-    proxima_meta = obter_proxima_meta(total_geral_pecas)
+    proxima_meta = obter_proxima_meta(total_geral_pecas, vendedor)
     
     meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
     
@@ -179,7 +179,8 @@ def home_adm(request):
 
     # Aplicação do cálculo de comissão por vendedor
     for vendedor_id, vendas_vendedor in vendas_por_vendedor.items():
-        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor)
+        vendedor = CustomUser.objects.get(id=vendedor_id)
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor, vendedor)
         vendas_por_vendedor[vendedor_id] = {
             'total_geral_pecas': total_pecas,
             'total_geral_valor': total_valor,
@@ -377,7 +378,8 @@ def relatorio_vendas(request):
     # Aplicação do cálculo de comissão baseado no total de peças vendidas
     for vendedor_id, dados in vendas_por_vendedor.items():
         vendas_vendedor = vendas.filter(vendedor__id=vendedor_id)
-        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor)
+        vendedor = dados['vendedor']
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor, vendedor)
 
         # Calcula a meta restante e o percentual atingido
         meta_restante = max(meta_maxima - total_pecas, 0)
@@ -459,15 +461,6 @@ def excluir_roteiro(request, roteiro_id):
     
     return redirect('enviar_roteiro')
 
-def obter_acrescimo(total_pecas):
-    """ Busca no banco o acréscimo correto para o número total de peças vendidas """
-    metas = MetaAcrescimo.objects.order_by("min_pecas")  # Garante a ordem correta
-    for meta in metas:
-        if meta.max_pecas is None or (meta.min_pecas <= total_pecas <= meta.max_pecas):
-            return meta.acrescimo
-    return 0  # Se não houver correspondência, não há acréscimo
-
-
 @login_required
 def selos(request, id_vendedor=None):
     request.session["id_vendedor"] = id_vendedor
@@ -510,11 +503,19 @@ def selos(request, id_vendedor=None):
         total_por_produto[venda.produto.id] += venda.quantidade_vendida
 
     # 🔹 Cálculo dos totais com base nas vendas do mês
-    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas_mes)
+    total_geral_pecas, total_geral_valor = calcular_total_comissao(vendas_mes, vendedor)
 
     valor_por_produto = {}
-    acrescimo = obter_acrescimo(total_geral_pecas)
-    meta_minima = MetaAcrescimo.objects.aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
+    
+    acrescimo = obter_acrescimo(total_geral_pecas, vendedor)
+
+    # Verifica se tem meta específica
+    tem_meta_especifica = MetaVendedora.objects.filter(vendedora=vendedor).exists()
+
+    if tem_meta_especifica:
+        meta_minima = MetaVendedora.objects.filter(vendedora=vendedor).aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
+    else:
+        meta_minima = MetaAcrescimo.objects.aggregate(min_valor=Min("min_pecas"))["min_valor"] or 0
 
     for produto in produtos:
         preco_base = produto.valor or 0
@@ -546,8 +547,8 @@ def selos(request, id_vendedor=None):
         }
 
     meta_restante = calcular_meta_vendedor(vendedor, mes, ano)
-    faixa_atual = obter_faixa_atual(total_geral_pecas)
-    proxima_meta = obter_proxima_meta(total_geral_pecas)
+    faixa_atual = obter_faixa_atual(total_geral_pecas, vendedor)
+    proxima_meta = obter_proxima_meta(total_geral_pecas, vendedor)
 
     preco_base = Produto.objects.first().valor if Produto.objects.exists() else 0
     comissao_atual = preco_base + faixa_atual.acrescimo if faixa_atual else 0
@@ -700,37 +701,130 @@ def editar_vendedora(request, pk):
     
 @login_required
 def listar_metas(request):
-    metas = MetaAcrescimo.objects.all()
-    return render(request, "metas/listar_metas.html", {"metas": metas})
+    metas_padroes = MetaAcrescimo.objects.all().order_by("min_pecas")
+    metas_especificas = MetaVendedora.objects.select_related("vendedora").order_by("vendedora__id", "min_pecas")
+
+    # Agrupa metas específicas por vendedora
+    agrupadas = {}
+    for meta in metas_especificas:
+        if meta.vendedora not in agrupadas:
+            agrupadas[meta.vendedora] = []
+        agrupadas[meta.vendedora].append(meta)
+
+    return render(request, "metas/listar_metas.html", {
+        "metas": metas_padroes,
+        "metas_especificas": agrupadas,
+    })
 
 @login_required
 def adicionar_meta(request):
+    tipo = request.GET.get("tipo", "padrao")  # Padrão se nada for passado
+    titulo = "Adicionar Faixa Específica" if tipo == "especifica" else "Adicionar Faixa Padrão"
+
+    form_class = MetaVendedoraForm if tipo == "especifica" else MetaAcrescimoForm
+
     if request.method == "POST":
-        form = MetaAcrescimoForm(request.POST)
+        form = form_class(request.POST)
+
         if form.is_valid():
-            form.save()
-            messages.success(request, "Meta adicionada com sucesso.")
+            nova_meta = form.save(commit=False)
+            min_pecas = form.cleaned_data["min_pecas"]
+            max_pecas = form.cleaned_data["max_pecas"]
+
+            if max_pecas and min_pecas > max_pecas:
+                messages.error(request, "A quantidade mínima de peças não pode ser maior que a máxima.")
+                # Redireciona de volta para o mesmo URL, mantendo o parâmetro tipo
+                return redirect(f"{reverse('adicionar_meta')}?tipo={tipo}")
+
+            faixa_max = max_pecas or float("inf")
+
+            if tipo == "especifica":
+                vendedora = form.cleaned_data["vendedora"]
+                nova_meta.vendedora = vendedora
+                outras_metas = MetaVendedora.objects.filter(vendedora=vendedora)
+            else:
+                outras_metas = MetaAcrescimo.objects.all()
+
+            for outra in outras_metas:
+                min_existente = outra.min_pecas
+                max_existente = outra.max_pecas or float("inf")
+
+                if not (faixa_max < min_existente or min_pecas > max_existente):
+                    messages.error(
+                        request,
+                        f"A faixa {min_pecas} - {max_pecas or '+'} se sobrepõe com {min_existente} - {outra.max_pecas or '+'}."
+                    )
+                    # Redireciona de volta para o mesmo URL, mantendo o parâmetro tipo
+                    return redirect(f"{reverse('adicionar_meta')}?tipo={tipo}")
+
+            nova_meta.save()
+            messages.success(request, "Faixa adicionada com sucesso.")
             return redirect("listar_metas")
     else:
-        form = MetaAcrescimoForm()
-    return render(request, "metas/form_meta.html", {"form": form, "titulo": "Adicionar Meta"})
+        form = form_class()
+
+    return render(request, "metas/form_meta.html", {
+        "form": form,
+        "titulo": titulo,
+        "tipo": tipo, 
+    })
 
 @login_required
-def editar_meta(request, meta_id):
-    meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+def editar_meta(request, meta_id, vendedora_id=None):
+    if vendedora_id:
+        meta = get_object_or_404(MetaVendedora, id=meta_id, vendedora_id=vendedora_id)
+        form_class = MetaVendedoraForm
+        titulo = f"Editar Meta da Vendedora: {meta.vendedora.get_full_name()}"
+    else:
+        meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+        form_class = MetaAcrescimoForm
+        titulo = "Editar Meta Padrão"
+
     if request.method == "POST":
-        form = MetaAcrescimoForm(request.POST, instance=meta)
+        form = form_class(request.POST, instance=meta)
         if form.is_valid():
-            form.save()
+            nova_meta = form.save(commit=False)
+            min_pecas = form.cleaned_data["min_pecas"]
+            max_pecas = form.cleaned_data["max_pecas"]
+
+            if max_pecas and min_pecas > max_pecas:
+                messages.error(request, "A quantidade mínima de peças não pode ser maior que a máxima.")
+                return render(request, "metas/form_meta.html", {"form": form, "titulo": titulo})
+
+            faixa_max = max_pecas or float("inf")
+
+            if vendedora_id:
+                outras_metas = MetaVendedora.objects.filter(vendedora_id=vendedora_id).exclude(id=meta.id)
+            else:
+                outras_metas = MetaAcrescimo.objects.exclude(id=meta.id)
+
+            # Verifica sobreposição com outras metas
+            for outra in outras_metas:
+                min_existente = outra.min_pecas
+                max_existente = outra.max_pecas or float("inf")
+
+                if not (faixa_max < min_existente or min_pecas > max_existente):
+                    messages.error(
+                        request,
+                        f"A faixa {min_pecas} - {max_pecas or '+'} se sobrepõe com a faixa existente {min_existente} - {outra.max_pecas or '+'}."
+                    )
+                    return render(request, "metas/form_meta.html", {"form": form, "titulo": titulo})
+
+            nova_meta.save()
             messages.success(request, "Meta atualizada com sucesso.")
             return redirect("listar_metas")
     else:
-        form = MetaAcrescimoForm(instance=meta)
-    return render(request, "metas/form_meta.html", {"form": form, "titulo": "Editar Meta"})
+        form = form_class(instance=meta)
+
+    return render(request, "metas/form_meta.html", {"form": form, "titulo": titulo})
 
 @login_required
-def excluir_meta(request, meta_id):
-    meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+def excluir_meta(request, meta_id, vendedora_id=None):
+    if vendedora_id:
+        meta = get_object_or_404(MetaVendedora, id=meta_id, vendedora_id=vendedora_id)
+    else:
+        meta = get_object_or_404(MetaAcrescimo, id=meta_id)
+
     meta.delete()
     messages.success(request, "Meta excluída com sucesso.")
     return redirect("listar_metas")

@@ -35,12 +35,12 @@
         <div class="tabelas-container">
             <div class="tabela">
                 <h3>Ranking de Promotoras</h3>
-                <table>
+                <table id="tabela-vendas" class="tabela-ordenavel">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Vendedora</th>
-                            <th>Total Vendido</th>
+                            <th onclick="ordenarTabela(1)">Vendedora &#x25B2;&#x25BC;</th>
+                            <th onclick="ordenarTabelaNumerica(2)">Total Vendido &#x25B2;&#x25BC;</th>
                             <th>Comissão Total (R$)</th>
                             <th>% da Meta (1000 peças)</th>
                         </tr>
@@ -151,6 +151,36 @@
             }
         });
     });
+
+    let ordemAscendente = true;
+
+    function ordenarTabela(colunaIndex) {
+        const tabela = document.getElementById("tabela-vendas");
+        const linhas = Array.from(tabela.tBodies[0].rows);
+
+        linhas.sort((a, b) => {
+            const textoA = a.cells[colunaIndex].innerText.trim().toLowerCase();
+            const textoB = b.cells[colunaIndex].innerText.trim().toLowerCase();
+            return ordemAscendente ? textoA.localeCompare(textoB) : textoB.localeCompare(textoA);
+        });
+
+        linhas.forEach(linha => tabela.tBodies[0].appendChild(linha));
+        ordemAscendente = !ordemAscendente;
+    }
+
+    function ordenarTabelaNumerica(colunaIndex) {
+        const tabela = document.getElementById("tabela-vendas");
+        const linhas = Array.from(tabela.tBodies[0].rows);
+
+        linhas.sort((a, b) => {
+            const valorA = parseFloat(a.cells[colunaIndex].innerText.replace(/[^\d.-]/g, '')) || 0;
+            const valorB = parseFloat(b.cells[colunaIndex].innerText.replace(/[^\d.-]/g, '')) || 0;
+            return ordemAscendente ? valorA - valorB : valorB - valorA;
+        });
+
+        linhas.forEach(linha => tabela.tBodies[0].appendChild(linha));
+        ordemAscendente = !ordemAscendente;
+    }
     </script>
 
 {% endblock %}

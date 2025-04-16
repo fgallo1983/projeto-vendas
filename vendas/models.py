@@ -70,3 +70,18 @@ class MetaAcrescimo(models.Model):
     def __str__(self):
         max_pecas_display = f"até {self.max_pecas}" if self.max_pecas else "+"
         return f"{self.min_pecas} {max_pecas_display} peças → +R$ {self.acrescimo:.2f}"
+    
+class MetaVendedora(models.Model):
+    vendedora = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    min_pecas = models.PositiveIntegerField("Mínimo de Peças")
+    max_pecas = models.PositiveIntegerField("Máximo de Peças", blank=True, null=True)
+    acrescimo = models.FloatField("Valor do Acréscimo")
+
+    class Meta:
+        ordering = ["min_pecas"]
+        verbose_name = "Meta da Vendedora"
+        verbose_name_plural = "Metas das Vendedoras"
+
+    def __str__(self):
+        max_display = f"até {self.max_pecas}" if self.max_pecas else "+"
+        return f"{self.vendedora} → {self.min_pecas} {max_display} peças → +R$ {self.acrescimo:.2f}"
