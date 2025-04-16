@@ -24,6 +24,7 @@
                 <th>Mínimo de Peças</th>
                 <th>Máximo de Peças</th>
                 <th>Acréscimo (R$)</th>
+                <th>Total Pago (R$)</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -33,6 +34,7 @@
                 <td>{{ meta.min_pecas }}</td>
                 <td>{% if meta.max_pecas %}{{ meta.max_pecas }}{% else %}+{% endif %}</td>
                 <td>R$ {{ meta.acrescimo|floatformat:2 }}</td>
+                <td>R$ {{ meta.total_pago|floatformat:2 }}</td>
                 <td>
                     <a href="{% url 'editar_meta' meta.id %}" class="btn-acao editar"><img src="{% static 'images/btn-edit.png' %}" alt="Editar" width="20"></a>
                     <a href="{% url 'excluir_meta' meta.id %}" class="btn-acao excluir" onclick="return confirm('Tem certeza que deseja excluir esta faixa?')">
@@ -57,6 +59,7 @@
                         <th>Mínimo de Peças</th>
                         <th>Máximo de Peças</th>
                         <th>Acréscimo (R$)</th>
+                        <th>Total Pago (R$)</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -66,6 +69,7 @@
                         <td>{{ meta.min_pecas }}</td>
                         <td>{% if meta.max_pecas %}{{ meta.max_pecas }}{% else %}+{% endif %}</td>
                         <td>R$ {{ meta.acrescimo|floatformat:2 }}</td>
+                        <td>R$ {{ meta.total_pago|floatformat:2 }}</td>
                         <td>
                             <a href="{% url 'editar_meta_vendedora' meta.id meta.vendedora.id %}" class="btn-acao editar"><img src="{% static 'images/btn-edit.png' %}" alt="Editar" width="20"></a>
                             <a href="{% url 'excluir_meta_vendedora' meta.id meta.vendedora.id %}" class="btn-acao excluir" onclick="return confirm('Tem certeza que deseja excluir esta faixa?')">

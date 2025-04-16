@@ -703,10 +703,18 @@ def editar_vendedora(request, pk):
 def listar_metas(request):
     metas_padroes = MetaAcrescimo.objects.all().order_by("min_pecas")
     metas_especificas = MetaVendedora.objects.select_related("vendedora").order_by("vendedora__id", "min_pecas")
+    
+    # Valor base
+    valor_base = 0.50
+    
+    # Adiciona total_pago para metas padrão
+    for meta in metas_padroes:
+        meta.total_pago = meta.acrescimo + valor_base
 
-    # Agrupa metas específicas por vendedora
+    # Agrupa metas específicas por vendedora e já adiciona total_pago
     agrupadas = {}
     for meta in metas_especificas:
+        meta.total_pago = meta.acrescimo + valor_base  # adiciona o campo dinamicamente
         if meta.vendedora not in agrupadas:
             agrupadas[meta.vendedora] = []
         agrupadas[meta.vendedora].append(meta)
