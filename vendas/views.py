@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth import login, logout, get_user_model
+from django.core.paginator import Paginator
 from django.db.models import Sum, Min, Max, Value
 from django.db.models.functions import Concat
 from django.contrib import messages
@@ -664,7 +665,11 @@ def carregar_lojas_por_vendedora(request):
 @login_required
 def listar_vendedoras(request):
     vendedoras = CustomUser.objects.filter(is_staff=False).order_by('first_name')
-    return render(request, "listar_vendedoras.html", {"vendedoras": vendedoras})
+    # Paginação com 10 vendedoras por página
+    paginator = Paginator(vendedoras, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "listar_vendedoras.html", {"vendedoras": page_obj})
 
 @login_required
 def alternar_status_vendedora(request, pk):

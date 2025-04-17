@@ -723,6 +723,22 @@ label {
     background: #fff;
 }
 
+.paginacao {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.paginacao .step-links a {
+    margin: 0 5px;
+    color: #420a36;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.paginacao .step-links .current {
+    margin: 0 10px;
+}
+
 /* Adicionando regra para garantir que a largura máxima de 1400px seja respeitada */
 @media (max-width: 1400px) {
     .dashboard-container {
@@ -888,41 +904,6 @@ form button:hover {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         overflow-y: auto;
         max-height: 300px;  /* Altura máxima para a tabela */
-    }
-
-    .tabela-responsiva table,
-    .tabela-responsiva thead,
-    .tabela-responsiva tbody,
-    .tabela-responsiva th,
-    .tabela-responsiva td,
-    .tabela-responsiva tr {
-        display: block;
-    }
-
-    .tabela-responsiva thead {
-        display: none;
-    }
-
-    .tabela-responsiva tr {
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        padding: 10px;
-    }
-
-    .tabela-responsiva td {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .tabela-responsiva td:last-child {
-        border-bottom: none;
-    }
-
-    .tabela-responsiva td::before {
-        content: attr(data-label);
-        font-weight: bold;
     }
   
     }

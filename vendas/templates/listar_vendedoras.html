@@ -3,7 +3,6 @@
 
 {% block content %}
 <div class="form-container" style="max-width: 1400px;">
-    <h2 style="margin-bottom: 20px;">Lista de Promotoras</h2>
 
     {% if messages %}
     <div class="mensagens">
@@ -15,8 +14,11 @@
     </div>
 {% endif %}
 
-    <div class="tabela-responsiva">
-        <table class="tabela">
+    <div class="tabelas-container" style="width: 100%;">
+        <div class="tabela" style="overflow-y: visible; max-height: none;">
+            
+            <h3>Lista de Vendedoras</h3>
+            <table class="tabela-interna">
             <thead>
                 <tr>
                     <th>Nome</th>
@@ -62,6 +64,25 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="paginacao">
+            {% if vendedoras.has_other_pages %}
+                <div class="step-links">
+                    {% if vendedoras.has_previous %}
+                        <a href="?page=1">&laquo; primeira</a>
+                        <a href="?page={{ vendedoras.previous_page_number }}">anterior</a>
+                    {% endif %}
+        
+                    <span class="current">
+                        Página {{ vendedoras.number }} de {{ vendedoras.paginator.num_pages }}
+                    </span>
+        
+                    {% if vendedoras.has_next %}
+                        <a href="?page={{ vendedoras.next_page_number }}">próxima</a>
+                        <a href="?page={{ vendedoras.paginator.num_pages }}">última &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
     </div>
     </div>
 </div>
