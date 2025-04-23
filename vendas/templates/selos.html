@@ -41,6 +41,7 @@
             <button type="submit">Filtrar</button>
         </form>
     </div>
+    <div class="print-area">
         <h2>Promotora: 
             {% if vendedor %}
             {{ vendedor.first_name }} {{ vendedor.last_name }}  <!-- Se o vendedor estiver presente -->
@@ -48,6 +49,7 @@
             {{ request.user.first_name }}  <!-- Caso contrário, usa o nome do usuário logado -->
         {% endif %}
            - {{ mes }}/{{ ano }}</h2>
+    </div>
         <center>
         <div class="indicadores-container">
         <div class="grafico-container">
@@ -151,10 +153,10 @@
                 });
             });
         </script>
-        
+        <button onclick="window.print()" class="btn-imprimir">Imprimir Relatório</button>
         <div class="tabela-responsiva">
         <div class="tabela-scroll">
-        <table border="1">
+        <table class="tabela" border="1">
             <thead>
                 <tr>
                     <th>Dia</th>

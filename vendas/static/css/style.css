@@ -950,6 +950,19 @@ form button:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
     }
 
+    .btn-imprimir {
+        background-color: #420a36;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 15px;
+    }
+    
+    .btn-imprimir:hover {
+        background-color: #5e0d49;
+    }
 
 @media (max-width: 768px) {
 
@@ -1006,7 +1019,6 @@ form button:hover {
 }
 
 @media print {
-
     @page {
         size: landscape;
         margin: 0;
@@ -1019,34 +1031,68 @@ form button:hover {
         padding: 0;
     }
 
-    .form-container {
+    /* Oculta tudo inicialmente */
+    body * {
+        visibility: hidden;
+    }
+
+    .tabela, .tabela *, 
+    .tabela-scroll, .tabela-scroll *, 
+    .tabela-responsiva, .tabela-responsiva *,
+    .grafico-container, .grafico-container * {
+        visibility: visible;
+    }
+   
+
+    .tabela {
+        position: absolute;
+        top: 80px; /* Ajuste aqui conforme o tamanho do seu h2 */
+        left: 0;
         width: 100%;
-        margin: 0;
-        padding: 0;
-        align-items: center;
+        display: table !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
-    h2 {
-        font-size: 18px;
-        color: #333;
-        text-align: center;
+    .form-container h2,
+    .form-container h2 * {
+        visibility: visible !important;
+        display: block !important;
     }
 
-    .no-print {
-        display: none;
+    .print-area {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        padding: 20px;
+        background: white;
+        z-index: 1000;
+    }
+
+    .print-area h2 {
+        font-size: 18pt;
+        margin-bottom: 20px;
+    }
+
+    header, footer,
+    .form-inline,
+    .btn-imprimir,
+    .filtros-relatorio,
+    .outras-secoes,
+    .coluna-editar {
+        display: none !important;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        display: table !important; /* Garante que volte ao comportamento padrão */
-        max-height: none !important; /* Remove a altura máxima */
-        overflow: visible !important; /* Remove a rolagem */
     }
 
     thead th {
-        position: static !important; /* Remove o cabeçalho fixo na impressão */
-        box-shadow: none !important; /* Remove sombra para evitar distorções */
+        position: static !important;
+        box-shadow: none !important;
     }
 
     th, td {
@@ -1055,24 +1101,13 @@ form button:hover {
         border: 1px solid #ddd;
     }
 
-    header, footer {
-        display: none;
-    }
-
-    /* Esconder o filtro com a classe .form-inline */
-    .form-inline {
-        display: none;
-    }
-
-
-    /* Esconder a coluna de editar (se você tiver algo assim em sua tabela) */
-    .coluna-editar {
-        display: none;
-    }
-
-    /* Ajustar a aparência para impressão (opcional) */
     .content {
         margin: 0;
         padding: 0;
+    }
+
+    /* Remove os links impressos como texto após o href */
+    a[href]:after {
+        content: "";
     }
 }
