@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 import calendar
 from collections import defaultdict
 from django.shortcuts import render, redirect, get_object_or_404
@@ -68,7 +69,6 @@ def home_vendedor(request):
         
      # Criar lista ordenada para o gráfico
     vendas_mensais = [vendas_por_mes.get(m, 0) for m in range(1, 13)]
-    print (vendas_mensais)
     
     produtos = Produto.objects.all()
 
@@ -297,7 +297,7 @@ def registrar_venda(request):
                     produto=produto,
                     data_venda=data_venda,
                     vendedor=vendedor,
-                    loja=loja  
+                    loja=loja
                 ).exists()
 
                 if venda_existente:
@@ -318,26 +318,48 @@ def registrar_venda(request):
 
             if vendas_registradas > 0:
                 messages.success(request, f"{vendas_registradas} venda(s) registrada(s) com sucesso!")
-                request.session['dia_destacado'] = data_venda.day
-                redirect_url = (
-                    reverse('selos', kwargs={'id_vendedor': vendedor.id})
-                    if request.user.is_staff else reverse('selos')
-                )
-                return redirect(f"{redirect_url}?ano={data_venda.year}&mes={data_venda.month}")
+                
+                # Passar a data para o URL
+                return redirect(f"{request.path}?data={data_venda}")  # Redirecionando com o parâmetro 
+
+                # Recria o formulário limpo, mantendo a data e o vendedor
+                initial_data = {'data_venda': data_venda if data_inicial else date.today()}  # Se data_inicial não estiver, usa a data do dia
+                if request.user.is_staff:
+                    initial_data['vendedor'] = vendedor
+                    form = VendaForm(user=request.user, vendedor=vendedor, initial=initial_data)
+                else:
+                    form = VendaForm(user=request.user, initial=initial_data)
+
+                # Força o valor de data_venda após a criação do formulário
+                form.fields['data_venda'].initial = data_venda
             else:
                 for erro in erros:
                     messages.error(request, erro)
-
     else:
+                # Verifique a data inicial ao passar para o formulário
         initial_data = {}
         if data_inicial:
             initial_data['data_venda'] = data_inicial
-        if vendedor:
-            initial_data['vendedor'] = vendedor
+        else:
+            initial_data['data_venda'] = date.today().strftime('%Y-%m-%d')  # Formato YYYY-MM-DD
 
+        # Passando o initial_data no formulário 
         form = VendaForm(user=request.user, vendedor=vendedor, initial=initial_data)
 
     return render(request, "registrar_venda.html", {"form": form})
+
+            # if vendas_registradas > 0:
+            #     messages.success(request, f"{vendas_registradas} venda(s) registrada(s) com sucesso!")
+            #     request.session['dia_destacado'] = data_venda.day
+            #     redirect_url = (
+            #         reverse('selos', kwargs={'id_vendedor': vendedor.id})
+            #         if request.user.is_staff else reverse('selos')
+            #     )
+            #     return redirect(f"{redirect_url}?ano={data_venda.year}&mes={data_venda.month}")
+            # else:
+            #     for erro in erros:
+            #         messages.error(request, erro)
+            
 # Verifica se o usuário é administrador
 def is_admin(user):
     return user.is_staff  # Apenas administradores terão acesso
