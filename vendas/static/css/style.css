@@ -547,6 +547,49 @@ h2 {
     padding-bottom: 20px;
 }
 
+.tabela-loja {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-height: 300px;  /* Altura máxima para a tabela */
+    overflow-y: auto;   /* Força a rolagem vertical se necessário */
+}
+
+.tabela-loja h3 {
+    background: #420a36;
+    color: white;
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
+tr.destaque {
+    background-color: #fff7c0 !important;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.tabela-loja {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-loja thead {
+    background: #ddd;
+}
+
+.tabela-loja th, .tabela-loja td {
+    padding: 10px;
+    text-align: left;
+}
+
+.tabela-loja tbody tr:nth-child(even) {
+    background: #b1aeae;
+}
+
 /* Estilo dos inputs dentro do formulário */
 input, select, button {
     width: 100%;
@@ -966,6 +1009,48 @@ label {
         flex-basis: 40%;
     }
 
+    .tabela-loja {
+        width: 100%;
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+        max-height: 300px;  /* Altura máxima para a tabela */
+    }
+  
+    .tabela-loja thead {
+        display: none;
+    }
+
+    .tabela-loja tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #fff;
+        padding: 10px;
+    }
+
+    .tabela-loja td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: none;
+        border-bottom: 1px solid #eee;
+    }
+
+    .tabela-loja td:last-child {
+        border-bottom: none;
+    }
+
+    .tabela-loja td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        flex-basis: 40%;
+    }
+
+
     .coluna-editar {
         text-align: center;
     }
@@ -1076,7 +1161,7 @@ label {
     .grafico-container, .grafico-container * {
         visibility: visible;
     }
-   
+
 
     .tabela {
         position: absolute;
@@ -1087,6 +1172,18 @@ label {
         max-height: none !important;
         overflow: visible !important;
     }
+
+    .tabela-loja {
+        /* visibility: hidden; */
+        position: absolute;
+        top: 1400px; /* Ajuste aqui conforme o tamanho do seu h2 */
+        left: 0;
+        width: 100%;
+        display: table !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
 
     .form-container h2,
     .form-container h2 * {

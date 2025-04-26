@@ -224,5 +224,42 @@
     </div> 
     </div> 
 </div>
-    
+<h2 style="margin-top: 40px;">Resumo de Vendas por Loja</h2>
+
+<div class="tabela-responsiva">
+    <div class="tabela-scroll">
+        <table class="tabela-loja" border="1">
+            <thead>
+                <tr>
+                    <th>Loja</th>
+                    {% for produto in produtos %}
+                        <th>{{ produto.nome }}</th>
+                    {% endfor %}
+                    <th>Total</th>
+                    <th>Comissão</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loja, total_vendas in sorted_lojas %}
+                <tr>
+                    <td data-label="Loja">{{ loja }}</td>
+                    {% for produto in produtos %}
+                        <td data-label="{{ produto.nome }}">
+                            {{ vendas_por_loja|dict_get:loja|dict_get:produto.id|default:0 }}
+                        </td>
+                    {% endfor %}
+                    <td data-label="Total">
+                        <strong>{{ total_por_loja|dict_get:loja|default:0 }}</strong>
+                    </td>
+                    <td data-label="Comissão">
+                        <strong>R$ {{ valor_por_loja|dict_get:loja|floatformat:2|default:"0.00" }}</strong>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+</div>
+</div>
+
+<br><br>
 {% endblock %}

@@ -578,6 +578,35 @@ def selos(request, id_vendedor=None):
 
     porcentagem_vendas = round((total_geral_pecas / proxima_meta) * 100, 2) if proxima_meta else 0
     porcentagem_vendas = str(porcentagem_vendas).replace(',', '.')
+    
+    # Inicializa estrutura: {loja: {produto_id: quantidade}}
+    vendas_por_loja = defaultdict(lambda: defaultdict(int))
+    valor_por_loja = defaultdict(float)
+    total_por_loja = defaultdict(int)
+
+    for venda in vendas_mes:
+        loja = f"{venda.loja.nome} ({venda.loja.cidade})" if venda.loja else "Sem loja"
+        produto_id = venda.produto.id
+        quantidade = venda.quantidade_vendida
+
+        # Soma a quantidade por loja e produto
+        vendas_por_loja[loja][produto_id] += quantidade
+        total_por_loja[loja] += quantidade
+
+        preco_base = venda.produto.valor or 0
+        if total_geral_pecas < meta_minima:
+            preco_final = preco_base
+        else:
+            preco_final = preco_base + acrescimo if preco_base <= 1.00 and venda.produto.id != 7 else preco_base
+
+        valor_por_loja[loja] += quantidade * preco_final
+        
+    # Converte os defaultdicts para dicts padrão
+    vendas_por_loja = {loja: dict(produtos) for loja, produtos in vendas_por_loja.items()}
+    valor_por_loja = dict(valor_por_loja)
+    total_por_loja = dict(total_por_loja)
+    sorted_lojas = sorted(total_por_loja.items(), key=lambda item: item[1], reverse=True)
+
 
     return render(
         request,
@@ -604,6 +633,11 @@ def selos(request, id_vendedor=None):
             "proxima_meta": proxima_meta,
             "preco_base": preco_base,
             "comissao_atual": comissao_atual,
+            "vendas_por_loja": vendas_por_loja,
+            "valor_por_loja": valor_por_loja,
+            "total_por_loja": total_por_loja,
+            "loja": loja,
+            "sorted_lojas": sorted_lojas, 
         },
     )
 
