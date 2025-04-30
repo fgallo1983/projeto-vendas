@@ -86,26 +86,29 @@ class MetaVendedoraForm(forms.ModelForm):
 
 class OptionalSetPasswordForm(forms.Form):
     new_password1 = forms.CharField(
-        label="Nova senha", 
+        label="Senha", 
         widget=forms.PasswordInput, 
         required=False
     )
     new_password2 = forms.CharField(
-        label="Confirme a nova senha", 
+        label="Confirme a senha", 
         widget=forms.PasswordInput, 
         required=False
     )
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user=None, *args, obrigatorio=False, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+
+        if obrigatorio:
+            self.fields["new_password1"].required = True
+            self.fields["new_password2"].required = True
 
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("new_password1")
         password2 = cleaned_data.get("new_password2")
 
-        # Só valida se um deles foi preenchido
         if password1 or password2:
             if password1 != password2:
                 raise forms.ValidationError("As senhas não coincidem.")
@@ -118,3 +121,10 @@ class OptionalSetPasswordForm(forms.Form):
             if commit:
                 self.user.save()
         return self.user
+
+
+
+class LojaForm(forms.ModelForm):
+    class Meta:
+        model = Loja
+        fields = ['nome', 'cidade']

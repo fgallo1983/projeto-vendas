@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <div class="registrar-venda-container">
+    <h2>Cadastrar Nova Loja</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.nome.label_tag }}
+            {{ form.nome }}
+        </div>
+        <div class="form-group">
+            {{ form.cidade.label_tag }}
+            {{ form.cidade }}
+        </div>
+        <button type="submit" class="btn btn-primary">Cadastrar Loja</button>
+        <a href="{% url 'listar_lojas' %}" class="btn-acao cancelar">Cancelar</a>
+    </form>
+</div></div>
+{% endblock %}

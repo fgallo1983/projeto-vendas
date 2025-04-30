@@ -16,9 +16,9 @@ from django.utils.http import urlencode
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.views import PasswordResetView 
-from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm, MetaVendedoraForm
+from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm, MetaVendedoraForm, LojaForm
 from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta, obter_acrescimo
-from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, MetaVendedora
+from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, MetaVendedora, Loja
 
 User = get_user_model()
 
@@ -736,10 +736,42 @@ def alternar_status_vendedora(request, pk):
     return redirect("listar_vendedoras")
 
 @login_required
+def cadastrar_vendedora(request):
+    if request.method == 'POST':
+        form = VendedoraForm(request.POST)
+        senha_form = OptionalSetPasswordForm(user=None, data=request.POST, prefix="senha")  # ⚡ Atenção: user=None no cadastro
+        form_ok = form.is_valid()
+        senha_ok = senha_form.is_valid()
+
+        if form_ok and senha_ok:
+            vendedora = form.save(commit=False)
+            # Se não existia senha, precisa criar um usuário novo
+            vendedora.username = vendedora.email  # Garante que o username seja igual ao e-mail
+            senha = senha_form.cleaned_data.get("new_password1")
+            vendedora.set_password(senha)  # Define a senha digitada
+            vendedora.save()
+            form.save_m2m()  # Salva a relação ManyToMany (lojas)
+            messages.success(request, "Vendedora cadastrada com sucesso.")
+            return redirect('listar_vendedoras')
+        else:
+            messages.error(request, "Erro ao cadastrar. Verifique os campos.")
+    else:
+        form = VendedoraForm()
+        senha_form = OptionalSetPasswordForm(user=None, prefix="senha")
+
+    return render(request, 'cadastrar_vendedora.html', {
+        'form': form,
+        'senha_form': senha_form,  # 👈 Passa o senha_form para o template!
+    })
+
+
+@login_required
 def editar_vendedora(request, pk):
     vendedora = get_object_or_404(CustomUser, pk=pk, is_staff=False)
     form = VendedoraForm(request.POST or None, instance=vendedora)
     senha_form = OptionalSetPasswordForm(user=vendedora, data=request.POST or None, prefix="senha")
+    
+
 
     if request.method == "POST":
         form_ok = form.is_valid()
@@ -897,3 +929,31 @@ def excluir_meta(request, meta_id, vendedora_id=None):
     meta.delete()
     messages.success(request, "Meta excluída com sucesso.")
     return redirect("listar_metas")
+
+def listar_lojas(request):
+    lojas = Loja.objects.all().order_by('nome')
+    return render(request, 'listar_lojas.html', {'lojas': lojas})
+
+def editar_loja(request, loja_id):
+    loja = get_object_or_404(Loja, id=loja_id)
+
+    if request.method == 'POST':
+        form = LojaForm(request.POST, instance=loja)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_lojas')
+    else:
+        form = LojaForm(instance=loja)
+
+    return render(request, 'editar_loja.html', {'form': form})
+
+def cadastrar_loja(request):
+    if request.method == 'POST':
+        form = LojaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_lojas')  # ou pode redirecionar para outra página
+    else:
+        form = LojaForm()
+
+    return render(request, 'cadastrar_loja.html', {'form': form})

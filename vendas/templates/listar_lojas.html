@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+<br>
+<div class="form-container" style="width: 100%;">
+    <a href="{% url 'cadastrar_loja' %}" class="button">
+        <img src="{% static 'images/botao-adicionar.png' %}" alt="Adicionar Faixa Específica" width="20"></a>
+
+    <div class="tabela" style="overflow-y: visible; max-height: none;">
+        <h3>Lista de Lojas</h3>
+
+    {% if lojas %}
+    <table class="tabela-interna">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cidade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loja in lojas %}
+                    <tr>
+                        <td>{{ loja.nome }}</td>
+                        <td>{{ loja.cidade }}</td>
+                        <td>
+                            <a href="{% url 'editar_loja' loja.id %}">
+                                <img src="{% static 'images/btn-edit.png' %}" alt="Editar" width="20">
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Não há lojas cadastradas.</p>
+    {% endif %}
+</div></div>
+{% endblock %}

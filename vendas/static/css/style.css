@@ -893,7 +893,7 @@ label {
     .container {
         width: 100%;
         padding: 10px;
-        margin-top: 150px; /* Evita sobreposição com o header */
+        margin-top: 200px; /* Evita sobreposição com o header */
     }
 
         /* 🔹 Filtros e tabela lado a lado */
@@ -902,14 +902,26 @@ label {
         align-items: flex-start;
         justify-content: flex-start;
         width: 100%;
-        margin-top: 120px;
+        margin-top: 250px;
         flex-direction: column;
-        gap: 20px;
     }
+
+    /* Estilo geral para o contêiner */
+    .form-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        margin-top: 250px; /* Ajuste dependendo da altura do header */
+        padding: 20px;
+        background-color: #f8f9fa;  /* Cor de fundo suave */
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra suave */
+        align-items: center;
+    }   
 
     .tabelas-container {
         display: flex;
         flex-direction: column;
+        margin-top: 50px;
         gap: 20px;
         align-items: stretch;
         overflow-y: auto; 
@@ -927,7 +939,7 @@ label {
 
     .dashboard-container {
         padding: 15px; /* Ajusta o padding em telas menores */
-        margin-top: 150px; /* Evita sobreposição com o header */
+        margin-top: 200px; /* Evita sobreposição com o header */
     }
 
     .indicadores-container {
@@ -1056,7 +1068,7 @@ label {
     }
     
     .roteiros-container {
-        margin-top: 150px; /* Evita sobreposição com o header */
+        margin-top: 200px; /* Evita sobreposição com o header */
     }
 
     .roteiros-content {
@@ -1133,7 +1145,7 @@ label {
     }
 
     .roteiros-container {
-        margin-top: 150px; /* Evita sobreposição com o header */
+        margin-top: 200px; /* Evita sobreposição com o header */
     }
 }
 
