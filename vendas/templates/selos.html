@@ -153,7 +153,9 @@
                 });
             });
         </script>
+        {% if user.is_staff %}
         <button onclick="window.print()" class="btn-imprimir">Imprimir Relatório</button>
+        {% endif %}
         <div class="tabela-responsiva">
         <div class="tabela-scroll">
         <table class="tabela" border="1">

@@ -1,36 +1,54 @@
 {% if user.is_authenticated %}
 {% load static %}
-<header class="no-print">
-<div class="header">
-    <div class="header-left">
-        <span>Bem-vindo, {{ request.user.first_name }}</span>
-    </div>
-
-    <div class="header-center">
-        {% if user.is_staff %}
-            <a href="{% url 'home_adm' %}">HOME</a>
-            <a href="{% url 'registrar_venda' %}">CADASTRO DE SELOS</a>
-            <a href="{% url 'listar_vendedoras' %}">PROMOTORAS</a>
-            <a href="{% url 'listar_metas' %}">METAS</a>
-            <img src="{% static 'images/logo.jpg' %}" alt="Logo">
-            <a href="{% url 'listar_lojas' %}">LOJAS</a>
-            <a href="{% url 'relatorio_vendas' %}">RANKING DE PROMOTORAS</a>
-        {% else %}
-            <a href="{% url 'home_vendedor' %}">HOME</a>
-            <a href="{% url 'registrar_venda' %}">CADASTRO DE SELOS</a>
-            <a href="{% url 'selos' %}">RELATÓRIO DE SELOS</a>
-        {% endif %}
-
-
-        {% if user.is_staff %}
-            <a href="{% url 'enviar_roteiro' %}">ENVIAR ROTEIRO</a>
-        {% else %}
-            <img src="{% static 'images/logo.jpg' %}" alt="Logo">
-            <a href="{% url 'roteiros' %}">ROTEIROS</a>
-        {% endif %}
-
-        <a href="{% url 'logout' %}">LOGOUT</a>
-    </div>
-</div>
+<!-- Top header com botão no mobile -->
+<header class="top-header no-print">
+  <button id="menu-toggle" class="hamburger">&#9776;</button>
+  <div class="right-content">
+    <span class="welcome">Bem-vindo, {{ request.user.first_name }}</span>
+    <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="logo">
+  </div>
 </header>
+<!-- Sidebar para desktop -->
+<div class="sidebar no-print" id="sidebar">
+  <button class="close-sidebar" id="close-sidebar">&times;</button>
+  <ul>
+    {% if user.is_staff %}
+      <li><a href="{% url 'home_adm' %}"><i class="fas fa-home"></i><span>Home</span></a></li>
+      <li><a href="{% url 'registrar_venda' %}"><i class="fas fa-tags"></i><span>Cadastro de Selos</span></a></li>
+      <li><a href="{% url 'listar_vendedoras' %}"><i class="fas fa-users"></i><span>Promotoras</span></a></li>
+      <li><a href="{% url 'listar_metas' %}"><i class="fas fa-bullseye"></i><span>Metas</span></a></li>
+      <li><a href="{% url 'listar_lojas' %}"><i class="fas fa-store"></i><span>Lojas</span></a></li>
+      <li><a href="{% url 'relatorio_vendas' %}"><i class="fas fa-chart-line"></i><span>Ranking</span></a></li>
+      <li><a href="{% url 'enviar_roteiro' %}"><i class="fas fa-upload"></i><span>Enviar Roteiro</span></a></li>
+    {% else %}
+      <li><a href="{% url 'home_vendedor' %}"><i class="fas fa-home"></i><span>Home</span></a></li>
+      <li><a href="{% url 'registrar_venda' %}"><i class="fas fa-tags"></i><span>Cadastro de Selos</span></a></li>
+      <li><a href="{% url 'selos' %}"><i class="fas fa-file-alt"></i><span>Relatório</span></a></li>
+      <li><a href="{% url 'roteiros' %}"><i class="fas fa-list"></i><span>Roteiros</span></a></li>
+    {% endif %}
+    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
+  </ul>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+      });
+    }
+  });
+</script>
+
 {% endif %}

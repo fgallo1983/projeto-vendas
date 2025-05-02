@@ -12,7 +12,6 @@ body {
     background: #f2f2f2;
     margin: 0;
     padding: 0;
-    padding-top: 100px; /* Mesma altura do header */
     width: 100%;
     height: 100%;
     max-width: 1400px; /* Limita a largura máxima */
@@ -108,6 +107,123 @@ h1 {
 p {
     font-size: 1.5rem;
 }
+
+/* estilo padrão para desktop */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 60px;
+    background-color: #420a36;
+    overflow-x: hidden;
+    transition: width 0.3s ease;
+    z-index: 1000;
+}
+
+/* expande no desktop */
+.sidebar.open {
+    width: 220px;
+}
+  
+  .sidebar:hover {
+    width: 220px;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar ul li a {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    color: white;
+    text-decoration: none;
+    transition: background 0.3s;
+  }
+  
+  .sidebar ul li a:hover {
+    background-color: #961d7c;
+  }
+  
+  .sidebar ul li i {
+    min-width: 30px;
+    text-align: center;
+  }
+  
+  .sidebar ul li span {
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    margin-left: 10px;
+  }
+  
+  .sidebar:hover ul li span {
+    opacity: 1;
+  }
+
+  .close-sidebar {
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    color: #fff;
+    background: none;
+    border: none;
+    z-index: 1100;
+    cursor: pointer;
+}
+
+.sidebar:not(.open) .close-sidebar {
+    display: none;
+}
+  
+  .top-header {
+    margin-left: 60px;
+    padding: 15px 20px;
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 60px;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .sidebar:hover ~ .top-header {
+    margin-left: 220px;
+  }
+  
+  .right-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .logo {
+    height: 40px;
+    width: auto;
+  }
+  
+  .welcome {
+    font-weight: bold;
+    color: #420a36;
+  }
+
+/* Oculta o botão hambúrguer em telas grandes */
+.hamburger {
+    width: 50px;
+    display: none;
+    background-color: #420a36;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+  }
 
 .limiter {
     width: 100%;
@@ -353,7 +469,6 @@ p {
 .form-container {
     max-width: 1400px;
     margin: 0 auto;
-    margin-top: 120px; /* Ajuste dependendo da altura do header */
     padding: 20px;
     background-color: #f8f9fa;  /* Cor de fundo suave */
     border-radius: 8px;
@@ -591,7 +706,7 @@ tr.destaque {
 }
 
 /* Estilo dos inputs dentro do formulário */
-input, select, button {
+input, select, form button {
     width: 100%;
     padding: 12px;
     margin: 8px 0;
@@ -608,11 +723,18 @@ input:focus, select:focus, button:focus {
 
 /* Botão de submit */
 button {
+
     background-color: #420a36;  /* Cor do botão */
     color: white;
     font-size: 18px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
 button:hover {
@@ -811,6 +933,47 @@ label {
     border: 1px solid #ccc;
 }
 
+/* Estilo base */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #eee;
+    flex-wrap: wrap;
+  }
+  
+  .navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .welcome {
+    font-weight: bold;
+  }
+  
+  .logo {
+    height: 60px;
+  }
+  
+  /* Menu de links */
+  .navbar-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  /* Ícone hambúrguer */
+  .hamburger {
+    display: none;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
 /* Adicionando regra para garantir que a largura máxima de 1400px seja respeitada */
 @media (max-width: 1400px) {
     .dashboard-container {
@@ -902,7 +1065,6 @@ label {
         align-items: flex-start;
         justify-content: flex-start;
         width: 100%;
-        margin-top: 250px;
         flex-direction: column;
     }
 
@@ -910,7 +1072,6 @@ label {
     .form-container {
         max-width: 1400px;
         margin: 0 auto;
-        margin-top: 250px; /* Ajuste dependendo da altura do header */
         padding: 20px;
         background-color: #f8f9fa;  /* Cor de fundo suave */
         border-radius: 8px;
@@ -939,7 +1100,7 @@ label {
 
     .dashboard-container {
         padding: 15px; /* Ajusta o padding em telas menores */
-        margin-top: 200px; /* Evita sobreposição com o header */
+        margin: 0 auto;
     }
 
     .indicadores-container {
@@ -963,7 +1124,6 @@ label {
         padding: 10px;
         align-items: center;
         flex-direction: column;
-        height: 600px; /* aumenta a altura no mobile */
 
     }
 
@@ -1081,6 +1241,7 @@ label {
     }
 
     .btn-imprimir {
+        width: 100%;
         background-color: #420a36;
         color: white;
         border: none;
@@ -1097,6 +1258,121 @@ label {
 
 @media (max-width: 768px) {
 
+    body {
+        padding-top: 0px; /* Ajuste maior para headers maiores no mobile */
+    }
+
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; /* garante ocupação da largura total */
+        padding: 10px 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .navbar-left {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .right-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .logo {
+        height: 50px;
+    }
+
+
+    .top-header {
+        margin-left: 0 !important;
+        justify-content: space-between;
+      }
+    
+    .hamburger {
+        display: block;
+        background-color: #420a36;   /* Cor de fundo padrão */
+        color: #fff;                 /* Cor do ícone */
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 24px;
+        max-width: 60px;
+        text-align: center;
+        margin-right: auto;
+    }
+    
+    /* Quando o mouse passa por cima */
+    .hamburger:hover {
+        background-color: #961d7c;
+    }
+    
+      .navbar-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 10px;
+      }
+    
+      .navbar-links.open {
+        display: flex;
+      }
+    
+      .navbar-links a {
+        padding: 10px;
+        width: 100%;
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .sidebar {
+        width: 0 !important;
+        height: 100vh;
+        background-color: #420a36;
+        position: fixed;
+        left: 0;
+        top: 0;
+        overflow-x: hidden;
+        transition: width 0.3s ease;
+        z-index: 1000;
+      }
+    
+      .sidebar.open {
+        width: 100vw !important;
+      }
+    
+      .sidebar ul li span {
+        opacity: 1; /* sempre visível no mobile */
+      }
+    
+      .sidebar:hover {
+        width: 220px; /* opcional no mobile */
+      }
+    
+      .close-sidebar {
+        display: block;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        color: #fff;
+        background: none;
+        border: none;
+        z-index: 1001;
+        cursor: pointer;
+      }
+    
+      .sidebar:not(.open) .close-sidebar {
+        display: none;
+      }
+
     .header-center {
         gap: 10px; /* Reduz o espaçamento entre os itens em telas menores */
         flex-direction: column; /* Coloca os itens em coluna */
@@ -1108,10 +1384,6 @@ label {
         height: auto;
         padding: 10px;
         text-align: center;
-    }
-
-    body {
-        padding-top: 120px; /* Ajuste maior para headers maiores no mobile */
     }
 
     .container-login100 {
