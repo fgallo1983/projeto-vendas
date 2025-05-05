@@ -50,7 +50,7 @@
                         <tr>
                             <td>{{ forloop.counter }}</td>
                             <td>
-                                <a href="{% url 'selos' id_vendedor=dados.vendedor.id %}">
+                                <a href="{% url 'selos' id_vendedor=dados.vendedor.id %}?mes={{ mes }}&ano={{ ano }}">
                                     {{ dados.vendedor.first_name }} {{ dados.vendedor.last_name }}
                                 </a>
                             </td>

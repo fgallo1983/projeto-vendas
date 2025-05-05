@@ -607,7 +607,11 @@ def selos(request, id_vendedor=None):
     total_por_loja = dict(total_por_loja)
     sorted_lojas = sorted(total_por_loja.items(), key=lambda item: item[1], reverse=True)
 
-
+    if vendas_mes.exists():
+        loja = f"{vendas_mes.first().loja.nome} ({vendas_mes.first().loja.cidade})" if vendas_mes.first().loja else "Sem loja"
+    else:
+        loja = "Sem loja"
+        
     return render(
         request,
         "selos.html",
@@ -636,7 +640,7 @@ def selos(request, id_vendedor=None):
             "vendas_por_loja": vendas_por_loja,
             "valor_por_loja": valor_por_loja,
             "total_por_loja": total_por_loja,
-            "loja": loja,
+            # "loja": loja,
             "sorted_lojas": sorted_lojas, 
         },
     )
