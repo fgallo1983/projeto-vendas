@@ -68,6 +68,7 @@
 
     </div> <!-- Fim de conteudo-container -->
     <button onclick="window.print()" class="btn-imprimir">Imprimir Relatório</button>
+    <button onclick="window.location.href='{% url 'exportar_excel' %}?mes={{ mes }}&ano={{ ano }}'" class="btn-imprimir">Exportar Excel</button>
     <!-- Gráfico ocupando toda a largura abaixo -->
     <div class="grafico-container-adm">
         <canvas id="graficoVendas"></canvas>

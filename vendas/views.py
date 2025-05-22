@@ -1,3 +1,10 @@
+import openpyxl
+from openpyxl.styles import Font, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
+from io import BytesIO
+from openpyxl import Workbook
+import locale
 import datetime
 from datetime import date
 import calendar
@@ -19,6 +26,7 @@ from django.contrib.auth.views import PasswordResetView
 from .forms import VendaForm, RoteiroForm, EditarVendasForm, VendedoraForm, OptionalSetPasswordForm, MetaAcrescimoForm, MetaVendedoraForm, LojaForm
 from .utils import calcular_total_comissao, calcular_meta_restante, calcular_meta_vendedor, obter_faixa_atual, obter_proxima_meta, obter_acrescimo
 from .models import Venda, ArquivoVendedor, Produto, CustomUser, MetaAcrescimo, MetaVendedora, Loja
+
 
 User = get_user_model()
 
@@ -961,3 +969,148 @@ def cadastrar_loja(request):
         form = LojaForm()
 
     return render(request, 'cadastrar_loja.html', {'form': form})
+
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+
+@login_required
+def exportar_excel_relatorio(request):
+    mes = int(request.GET.get('mes', datetime.datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.datetime.now().year))
+    nome_mes = datetime.date(ano, mes, 1).strftime('%B').capitalize()
+    num_dias = calendar.monthrange(ano, mes)[1]
+
+    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+    produtos = Produto.objects.all()
+    meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
+
+    vendas_por_vendedor = {}
+
+    for venda in vendas:
+        vendedor = venda.vendedor
+        vendedor_id = vendedor.id
+        dia = venda.data_venda.day
+
+        if vendedor_id not in vendas_por_vendedor:
+            vendas_por_vendedor[vendedor_id] = {
+                'vendedor': vendedor,
+                'total_por_dia': {d: 0 for d in range(1, num_dias + 1)},
+            }
+
+        vendas_por_vendedor[vendedor_id]['total_por_dia'][dia] += venda.quantidade_vendida
+
+    # Cálculo do total e percentual de meta
+    for vendedor_id, dados in vendas_por_vendedor.items():
+        vendas_vendedor = vendas.filter(vendedor__id=vendedor_id)
+        vendedor = dados['vendedor']
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor, vendedor)
+        percentual_meta = (total_pecas / (meta_maxima - 1)) * 100 if meta_maxima > 0 else 0
+
+        dados['total_pecas'] = total_pecas
+        dados['total_geral_valor'] = total_valor
+        dados['percentual_meta'] = percentual_meta
+
+    # Ordenar por total de peças (desc)
+    vendedores_ordenados = sorted(vendas_por_vendedor.values(), key=lambda x: x['total_pecas'], reverse=True)
+
+    # Estilos
+    font_titulo = Font(name="Arial Rounded MT Bold", size=20, bold=True)
+    font_vendedora = Font(name="Arial Rounded MT Bold", size=13)
+    font_normal = Font(name="Arial Rounded MT Bold", size=11)
+
+    align_center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    thick = Side(border_style="thick", color="000000")
+    thin = Side(border_style="thin", color="000000")
+    border_outside = Border(top=thin, bottom=thin, left=thin, right=thin)
+
+    # Criar workbook e worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Relatório Vendas"
+
+    # Linha de título (linha 2)
+    ws["B2"] = f"Relatório de Vendas - {nome_mes} {ano}"
+    ws["B2"].font = font_titulo
+    ws["B2"].alignment = align_center
+    ws.merge_cells(start_row=2, start_column=2, end_row=2, end_column=3 + num_dias + 1)
+
+    # Cabeçalhos
+    ws["B4"] = "Nº"
+    ws["C4"] = "Promotora"
+    for i in range(1, num_dias + 1):
+        col = get_column_letter(3 + i)
+        ws[f"{col}4"] = f"{i:02d}/{mes:02d}"
+        ws[f"{col}4"].font = font_normal
+        ws[f"{col}4"].alignment = align_center
+
+    col_resumo = get_column_letter(3 + num_dias + 1)
+    ws[f"{col_resumo}4"] = "Resumo"
+    ws[f"B4"].font = font_normal
+    ws[f"B4"].alignment = align_center
+    ws[f"C4"].font = font_normal
+    ws[f"C4"].alignment = align_center
+    ws[f"{col_resumo}4"].font = font_normal
+    ws[f"{col_resumo}4"].alignment = align_center
+
+    # Preencher dados
+    linha = 5
+    for i, dados in enumerate(vendedores_ordenados, start=1):
+        nome = dados['vendedor'].get_full_name() or dados['vendedor'].username
+        total_pecas = dados['total_pecas']
+        total_valor = dados['total_geral_valor']
+        percentual_meta = dados['percentual_meta']
+
+        ws[f"B{linha}"] = i
+        ws[f"B{linha}"].font = font_normal
+        ws[f"C{linha}"] = nome
+        ws[f"C{linha}"].font = font_vendedora
+
+        # Preencher dias
+        for dia in range(1, num_dias + 1):
+            col = get_column_letter(3 + dia)
+            ws[f"{col}{linha}"] = dados['total_por_dia'].get(dia, 0)
+            ws[f"{col}{linha}"].font = font_normal
+
+        # Resumo
+        resumo_texto = f"{total_pecas} peças | R${total_valor:.2f} | {percentual_meta:.1f}%"
+        ws[f"{col_resumo}{linha}"] = resumo_texto
+        ws[f"{col_resumo}{linha}"].font = font_normal
+
+        linha += 1
+
+    # Ajustar largura
+    for col in ws.columns:
+        max_length = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max_length + 3
+        ws.column_dimensions['B'].width = 5   # Coluna dos números (Nº)
+        ws.column_dimensions['C'].width = 50  # Coluna dos nomes das promoto
+
+    # Aplicar bordas
+    for row in ws.iter_rows(min_row=4, max_row=linha - 1, min_col=2, max_col=3 + num_dias + 1):
+        for cell in row:
+            cell.alignment = align_center
+            cell.border = border_outside
+
+    # Bordas grossas nas colunas principais
+    for row in range(4, linha):
+        for col_idx in [2, 3, 3 + num_dias + 1]:
+            cell = ws.cell(row=row, column=col_idx)
+            cell.border = Border(top=thick, bottom=thick, left=thick, right=thick)
+
+    # Salvar e retornar
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = HttpResponse(
+        output,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = f"relatorio_vendas_{mes:02d}_{ano}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    return response

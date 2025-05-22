@@ -44,6 +44,7 @@ urlpatterns = [
          name='password_reset_confirm'),
     path('esqueci-minha-senha/completar/', auth_views.PasswordResetCompleteView.as_view(template_name="registration/password_reset_complete.html"), 
          name='password_reset_complete'),
+    path("exportar-excel/", views.exportar_excel_relatorio, name="exportar_excel"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
