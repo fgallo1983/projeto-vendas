@@ -976,41 +976,48 @@ locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 def exportar_excel_relatorio(request):
     mes = int(request.GET.get('mes', datetime.datetime.now().month))
     ano = int(request.GET.get('ano', datetime.datetime.now().year))
-    nome_mes = datetime.date(ano, mes, 1).strftime('%B').capitalize()
+    
+    MESES_PT = {
+    1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+    5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+    9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+}
+
+    nome_mes = MESES_PT[mes]
     num_dias = calendar.monthrange(ano, mes)[1]
 
-    vendas = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
+    vendas_do_mes = Venda.objects.filter(data_venda__year=ano, data_venda__month=mes)
     produtos = Produto.objects.all()
     meta_maxima = MetaAcrescimo.objects.aggregate(max_valor=Max("min_pecas"))["max_valor"] or 1000
 
-    vendas_por_vendedor = {}
+    todas_vendedoras = CustomUser.objects.filter(
+    is_staff=False,
+    is_superuser=False,
+    is_active=True
+)
 
-    for venda in vendas:
-        vendedor = venda.vendedor
-        vendedor_id = vendedor.id
-        dia = venda.data_venda.day
+    dados_por_vendedora = []
 
-        if vendedor_id not in vendas_por_vendedor:
-            vendas_por_vendedor[vendedor_id] = {
-                'vendedor': vendedor,
-                'total_por_dia': {d: 0 for d in range(1, num_dias + 1)},
-            }
+    for vendedora in todas_vendedoras:
+        vendas_vendedora = vendas_do_mes.filter(vendedor=vendedora)
 
-        vendas_por_vendedor[vendedor_id]['total_por_dia'][dia] += venda.quantidade_vendida
+        total_por_dia = {d: 0 for d in range(1, num_dias + 1)}
+        for venda in vendas_vendedora:
+            total_por_dia[venda.data_venda.day] += venda.quantidade_vendida
 
-    # Cálculo do total e percentual de meta
-    for vendedor_id, dados in vendas_por_vendedor.items():
-        vendas_vendedor = vendas.filter(vendedor__id=vendedor_id)
-        vendedor = dados['vendedor']
-        total_pecas, total_valor = calcular_total_comissao(vendas_vendedor, vendedor)
+        total_pecas, total_valor = calcular_total_comissao(vendas_vendedora, vendedora)
         percentual_meta = (total_pecas / (meta_maxima - 1)) * 100 if meta_maxima > 0 else 0
 
-        dados['total_pecas'] = total_pecas
-        dados['total_geral_valor'] = total_valor
-        dados['percentual_meta'] = percentual_meta
+        dados_por_vendedora.append({
+            'vendedor': vendedora,
+            'total_por_dia': total_por_dia,
+            'total_pecas': total_pecas,
+            'total_geral_valor': total_valor,
+            'percentual_meta': percentual_meta,
+        })
 
     # Ordenar por total de peças (desc)
-    vendedores_ordenados = sorted(vendas_por_vendedor.values(), key=lambda x: x['total_pecas'], reverse=True)
+    vendedores_ordenados = sorted(dados_por_vendedora, key=lambda x: x['total_pecas'], reverse=True)
 
     # Estilos
     font_titulo = Font(name="Arial Rounded MT Bold", size=20, bold=True)
@@ -1028,7 +1035,7 @@ def exportar_excel_relatorio(request):
     ws = wb.active
     ws.title = "Relatório Vendas"
 
-    # Linha de título (linha 2)
+    # Linha de título
     ws["B2"] = f"Relatório de Vendas - {nome_mes} {ano}"
     ws["B2"].font = font_titulo
     ws["B2"].alignment = align_center
@@ -1045,10 +1052,10 @@ def exportar_excel_relatorio(request):
 
     col_resumo = get_column_letter(3 + num_dias + 1)
     ws[f"{col_resumo}4"] = "Resumo"
-    ws[f"B4"].font = font_normal
-    ws[f"B4"].alignment = align_center
-    ws[f"C4"].font = font_normal
-    ws[f"C4"].alignment = align_center
+    ws["B4"].font = font_normal
+    ws["B4"].alignment = align_center
+    ws["C4"].font = font_normal
+    ws["C4"].alignment = align_center
     ws[f"{col_resumo}4"].font = font_normal
     ws[f"{col_resumo}4"].alignment = align_center
 
@@ -1086,8 +1093,8 @@ def exportar_excel_relatorio(request):
             if cell.value:
                 max_length = max(max_length, len(str(cell.value)))
         ws.column_dimensions[col_letter].width = max_length + 3
-        ws.column_dimensions['B'].width = 5   # Coluna dos números (Nº)
-        ws.column_dimensions['C'].width = 50  # Coluna dos nomes das promoto
+        ws.column_dimensions['B'].width = 5
+        ws.column_dimensions['C'].width = 50
 
     # Aplicar bordas
     for row in ws.iter_rows(min_row=4, max_row=linha - 1, min_col=2, max_col=3 + num_dias + 1):
@@ -1095,7 +1102,6 @@ def exportar_excel_relatorio(request):
             cell.alignment = align_center
             cell.border = border_outside
 
-    # Bordas grossas nas colunas principais
     for row in range(4, linha):
         for col_idx in [2, 3, 3 + num_dias + 1]:
             cell = ws.cell(row=row, column=col_idx)
